@@ -1,7 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::model::{
-    ErrorKind, ErrorSeverity, ExpectedEntity, NearMiss, PredictedSpan, SampleCounts, TestError,
+    ErrorKind, ErrorSeverity, ExpectedEntity, NearMiss, PredictedSpan, SampleCounts,
+    SpanWithText, TestError,
 };
 
 pub struct CheckResult {
@@ -12,13 +13,14 @@ pub struct CheckResult {
 
 pub fn check(
     sample_id: &str,
+    source_text: &str,
     predicted: &[PredictedSpan],
     expected: &[ExpectedEntity],
 ) -> CheckResult {
     let state = run_matching(predicted, expected);
     let counts = global_counts(&state, predicted.len(), expected.len());
     let by_type = per_type_counts_map(predicted, expected, &state);
-    let error = build_error(sample_id, predicted, expected, &state, &counts);
+    let error = build_error(sample_id, source_text, predicted, expected, &state, &counts);
     CheckResult { counts, by_type, error }
 }
 
@@ -106,41 +108,23 @@ fn type_counts(
 ) -> SampleCounts {
     SampleCounts {
         tp_strict: state
-            .strict_exp
-            .iter()
-            .zip(expected)
-            .filter(|(&v, e)| v && e.entity_type == etype)
-            .count(),
+            .strict_exp.iter().zip(expected)
+            .filter(|(&v, e)| v && e.entity_type == etype).count(),
         fp_strict: state
-            .strict_pred
-            .iter()
-            .zip(predicted)
-            .filter(|(&v, p)| !v && p.entity_type == etype)
-            .count(),
+            .strict_pred.iter().zip(predicted)
+            .filter(|(&v, p)| !v && p.entity_type == etype).count(),
         fn_strict: state
-            .strict_exp
-            .iter()
-            .zip(expected)
-            .filter(|(&v, e)| !v && e.entity_type == etype)
-            .count(),
+            .strict_exp.iter().zip(expected)
+            .filter(|(&v, e)| !v && e.entity_type == etype).count(),
         tp_relaxed: state
-            .relaxed_exp
-            .iter()
-            .zip(expected)
-            .filter(|(&v, e)| v && e.entity_type == etype)
-            .count(),
+            .relaxed_exp.iter().zip(expected)
+            .filter(|(&v, e)| v && e.entity_type == etype).count(),
         fp_relaxed: state
-            .relaxed_pred
-            .iter()
-            .zip(predicted)
-            .filter(|(&v, p)| !v && p.entity_type == etype)
-            .count(),
+            .relaxed_pred.iter().zip(predicted)
+            .filter(|(&v, p)| !v && p.entity_type == etype).count(),
         fn_relaxed: state
-            .relaxed_exp
-            .iter()
-            .zip(expected)
-            .filter(|(&v, e)| !v && e.entity_type == etype)
-            .count(),
+            .relaxed_exp.iter().zip(expected)
+            .filter(|(&v, e)| !v && e.entity_type == etype).count(),
     }
 }
 
@@ -148,6 +132,7 @@ fn type_counts(
 
 fn build_error(
     sample_id: &str,
+    source_text: &str,
     predicted: &[PredictedSpan],
     expected: &[ExpectedEntity],
     state: &MatchState,
@@ -159,22 +144,26 @@ fn build_error(
         .filter(|(i, _)| state.relaxed_pred[*i] && !state.strict_pred[*i])
         .map(|(i, pred)| {
             let ei = state.relaxed_pair[i].unwrap();
-            NearMiss { obtained: pred.clone(), expected: expected[ei].clone() }
+            let exp = &expected[ei];
+            NearMiss {
+                obtained: span_with_text(&pred.entity_type, pred.start, pred.end, source_text),
+                expected: span_with_text(&exp.entity_type, exp.start, exp.end, source_text),
+            }
         })
         .collect();
 
-    let false_positives: Vec<PredictedSpan> = predicted
+    let false_positives: Vec<SpanWithText> = predicted
         .iter()
         .enumerate()
         .filter(|(i, _)| !state.relaxed_pred[*i])
-        .map(|(_, p)| p.clone())
+        .map(|(_, p)| span_with_text(&p.entity_type, p.start, p.end, source_text))
         .collect();
 
-    let false_negatives: Vec<crate::model::ExpectedEntity> = expected
+    let false_negatives: Vec<SpanWithText> = expected
         .iter()
         .enumerate()
         .filter(|(i, _)| !state.relaxed_exp[*i])
-        .map(|(_, e)| e.clone())
+        .map(|(_, e)| span_with_text(&e.entity_type, e.start, e.end, source_text))
         .collect();
 
     let has_fn = counts.fn_relaxed > 0;
@@ -201,6 +190,15 @@ fn build_error(
     Some(TestError { sample_id: sample_id.to_string(), severity, kinds, near_misses, false_positives, false_negatives })
 }
 
+fn span_with_text(entity_type: &str, start: usize, end: usize, source: &str) -> SpanWithText {
+    SpanWithText {
+        entity_type: entity_type.to_string(),
+        start,
+        end,
+        text: source.get(start..end).unwrap_or("").to_string(),
+    }
+}
+
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -217,7 +215,7 @@ mod tests {
 
     #[test]
     fn perfect_match_produces_no_error() {
-        let result = check("t::1", &[pred("PERSON", 10, 20)], &[exp("PERSON", 10, 20)]);
+        let result = check("t::1", "", &[pred("PERSON", 10, 20)], &[exp("PERSON", 10, 20)]);
         assert_eq!(result.counts.tp_strict, 1);
         assert_eq!(result.counts.fp_strict, 0);
         assert_eq!(result.counts.fn_strict, 0);
@@ -226,7 +224,7 @@ mod tests {
 
     #[test]
     fn empty_predicted_all_false_negatives() {
-        let result = check("t::1", &[], &[exp("PERSON", 10, 20), exp("LOCATION", 30, 40)]);
+        let result = check("t::1", "", &[], &[exp("PERSON", 10, 20), exp("LOCATION", 30, 40)]);
         assert_eq!(result.counts.fn_relaxed, 2);
         assert_eq!(result.counts.tp_relaxed, 0);
         let err = result.error.unwrap();
@@ -237,7 +235,7 @@ mod tests {
 
     #[test]
     fn empty_expected_all_false_positives() {
-        let result = check("t::1", &[pred("PERSON", 10, 20)], &[]);
+        let result = check("t::1", "", &[pred("PERSON", 10, 20)], &[]);
         assert_eq!(result.counts.fp_relaxed, 1);
         let err = result.error.unwrap();
         assert_eq!(err.severity, ErrorSeverity::Low);
@@ -247,7 +245,7 @@ mod tests {
 
     #[test]
     fn overlapping_span_is_near_miss() {
-        let result = check("t::1", &[pred("PERSON", 10, 21)], &[exp("PERSON", 10, 20)]);
+        let result = check("t::1", "", &[pred("PERSON", 10, 21)], &[exp("PERSON", 10, 20)]);
         assert_eq!(result.counts.tp_strict, 0);
         assert_eq!(result.counts.tp_relaxed, 1);
         let err = result.error.unwrap();
@@ -260,19 +258,17 @@ mod tests {
 
     #[test]
     fn same_span_wrong_type_is_fp_and_fn() {
-        let result = check("t::1", &[pred("LOCATION", 10, 20)], &[exp("PERSON", 10, 20)]);
+        let result = check("t::1", "", &[pred("LOCATION", 10, 20)], &[exp("PERSON", 10, 20)]);
         assert_eq!(result.counts.fp_relaxed, 1);
         assert_eq!(result.counts.fn_relaxed, 1);
         let err = result.error.unwrap();
-        // FN is present → High beats anything else
         assert_eq!(err.severity, ErrorSeverity::High);
     }
 
     #[test]
     fn fn_severity_beats_near_miss() {
-        // near miss on PERSON + completely missed LOCATION → High
         let result = check(
-            "t::1",
+            "t::1", "",
             &[pred("PERSON", 10, 21)],
             &[exp("PERSON", 10, 20), exp("LOCATION", 50, 60)],
         );
@@ -284,30 +280,53 @@ mod tests {
 
     #[test]
     fn greedy_prevents_double_matching() {
-        // Two identical predicted spans — only the first should claim the expected span
         let result = check(
-            "t::1",
+            "t::1", "",
             &[pred("PERSON", 10, 20), pred("PERSON", 10, 20)],
             &[exp("PERSON", 10, 20)],
         );
         assert_eq!(result.counts.tp_strict, 1);
-        assert_eq!(result.counts.fp_strict, 1); // second predicted is unmatched
+        assert_eq!(result.counts.fp_strict, 1);
     }
 
     #[test]
     fn per_type_counts_are_isolated() {
         let result = check(
-            "t::1",
+            "t::1", "",
             &[pred("PERSON", 10, 20)],
             &[exp("PERSON", 10, 20), exp("LOCATION", 30, 40)],
         );
-        // PERSON: 1 TP, 0 FN
         let person = result.by_type.get("PERSON").unwrap();
         assert_eq!(person.tp_relaxed, 1);
         assert_eq!(person.fn_relaxed, 0);
-        // LOCATION: 0 TP, 1 FN
         let location = result.by_type.get("LOCATION").unwrap();
         assert_eq!(location.tp_relaxed, 0);
         assert_eq!(location.fn_relaxed, 1);
+    }
+
+    #[test]
+    fn extracted_text_matches_source() {
+        let source = "Mi chiamo Mario Rossi e abito a Milano";
+        let result = check(
+            "t::1", source,
+            &[pred("PERSON", 10, 21)],
+            &[exp("PERSON", 10, 21)],
+        );
+        assert!(result.error.is_none());
+
+        // near miss: extracted text should reflect actual source chars
+        let result2 = check(
+            "t::1", source,
+            &[pred("PERSON", 10, 22)],   // one char too long
+            &[exp("PERSON", 10, 21)],
+        );
+        let err = result2.error.unwrap();
+        assert_eq!(err.near_misses[0].obtained.text, "Mario Rossi ");
+        assert_eq!(err.near_misses[0].expected.text, "Mario Rossi");
+
+        // FP text extraction
+        let result3 = check("t::1", source, &[pred("LOCATION", 32, 38)], &[]);
+        let err3 = result3.error.unwrap();
+        assert_eq!(err3.false_positives[0].text, "Milano");
     }
 }

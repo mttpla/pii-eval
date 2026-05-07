@@ -109,7 +109,7 @@ fn main() -> Result<()> {
                     entities_predicted += predicted.len();
 
                     let result =
-                        checker::check(&sample.id, &predicted, &sample.presidio_expected);
+                        checker::check(&sample.id, &sample.text, &predicted, &sample.presidio_expected);
 
                     if args.verbose {
                         let c = &result.counts;

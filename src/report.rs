@@ -99,22 +99,23 @@ pub fn print_console(report: &EvalReport) {
             for nm in &e.near_misses {
                 println!(
                     "    {DIM}near miss{RESET}  {}  \
-                     obtained [{}-{}]  expected [{}-{}]",
+                     obtained [{}-{}] {YELLOW}\"{}\"{RESET}  \
+                     expected [{}-{}] {CYAN}\"{}\"{RESET}",
                     nm.obtained.entity_type,
-                    nm.obtained.start, nm.obtained.end,
-                    nm.expected.start, nm.expected.end,
+                    nm.obtained.start, nm.obtained.end, nm.obtained.text,
+                    nm.expected.start, nm.expected.end, nm.expected.text,
                 );
             }
             for fp in &e.false_positives {
                 println!(
-                    "    {DIM}extra{RESET}     {RED}+{RESET}  {}  [{}-{}]",
-                    fp.entity_type, fp.start, fp.end,
+                    "    {DIM}extra{RESET}     {RED}+{RESET}  {}  [{}-{}]  {RED}\"{}\"{RESET}",
+                    fp.entity_type, fp.start, fp.end, fp.text,
                 );
             }
             for fn_ in &e.false_negatives {
                 println!(
-                    "    {DIM}missed{RESET}    {YELLOW}-{RESET}  {}  [{}-{}]",
-                    fn_.entity_type, fn_.start, fn_.end,
+                    "    {DIM}missed{RESET}    {YELLOW}-{RESET}  {}  [{}-{}]  {YELLOW}\"{}\"{RESET}",
+                    fn_.entity_type, fn_.start, fn_.end, fn_.text,
                 );
             }
         }

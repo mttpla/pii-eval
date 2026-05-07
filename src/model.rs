@@ -49,11 +49,20 @@ pub enum ErrorSeverity {
     Low,
 }
 
+/// Span with the text extracted from the source — used only in error reporting.
+#[derive(Debug, Clone, Serialize)]
+pub struct SpanWithText {
+    pub entity_type: String,
+    pub start: usize,
+    pub end: usize,
+    pub text: String,
+}
+
 /// Predicted/expected pair that overlaps in type+span but not exactly.
 #[derive(Debug, Clone, Serialize)]
 pub struct NearMiss {
-    pub obtained: PredictedSpan,
-    pub expected: ExpectedEntity,
+    pub obtained: SpanWithText,
+    pub expected: SpanWithText,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -62,8 +71,8 @@ pub struct TestError {
     pub severity: ErrorSeverity,
     pub kinds: Vec<ErrorKind>,
     pub near_misses: Vec<NearMiss>,
-    pub false_positives: Vec<PredictedSpan>,
-    pub false_negatives: Vec<ExpectedEntity>,
+    pub false_positives: Vec<SpanWithText>,
+    pub false_negatives: Vec<SpanWithText>,
 }
 
 // ── Internal accumulation (not serialized) ─────────────────────────────────────
