@@ -1,0 +1,46 @@
+direction: right
+
+fs_in: "test-data/*.json" {shape: page}
+presidio_api: "Presidio\nHTTP /analyze" {shape: cylinder}
+stdout: "stdout\n(ANSI colored)" {shape: page}
+fs_out: "report.json" {shape: page}
+
+main: "main.rs" {
+  description: "CLI · per-file loop"
+}
+model: "model.rs" {
+  description: "shared types"
+  style.fill: "#eeeeee"
+}
+client: "presidio_client.rs" {
+  description: "analyze(text, lang)"
+}
+checker: "checker.rs" {
+  description: "check() → SampleCounts\n+ Option<TestError>"
+}
+stats: "stats.rs" {
+  description: "add() · finalize()\n→ DualMetrics"
+}
+report: "report.rs" {
+  description: "print_console()\nwrite_json()"
+}
+
+# runtime data flow
+fs_in -> main: "walkdir\none file at a time"
+main -> client: "text, lang"
+client -> presidio_api: "POST /analyze\n{text, language}"
+presidio_api -> client: "Vec<RawSpan>"
+client -> main: "Result<Vec<PredictedSpan>>"
+main -> checker: "sample_id\npredicted, expected"
+checker -> main: "CheckResult\n(SampleCounts + Option<TestError>)"
+main -> stats: "add(counts, by_type, lang)"
+main -> report: "EvalReport"
+report -> stdout
+report -> fs_out
+
+# compile-time type dependencies (dashed)
+model -> main:    {style.stroke-dash: 3; label: "types"}
+model -> client:  {style.stroke-dash: 3}
+model -> checker: {style.stroke-dash: 3}
+model -> stats:   {style.stroke-dash: 3}
+model -> report:  {style.stroke-dash: 3}
