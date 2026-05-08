@@ -86,3 +86,8 @@ docs/plans/0004_my_next_change.md   ← next one
 ```
 
 Always create a new file — never edit a completed plan.
+
+`docs/plans/INDEX.md` is the authoritative backlog. Keep it up to date:
+- Mark a plan **Completed** when all its tasks are done and merged.
+- Move items from **To Do** to a numbered plan file when work begins, and set it to **In Progress**.
+- Add new **To Do** entries (no number yet) for future improvements or bugs discovered during a plan.

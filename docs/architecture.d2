@@ -1,19 +1,28 @@
 direction: right
 
 fs_in: "test-data/*.json" {shape: page}
+fs_prompt: "llm-prompt.md\n(system prompt)" {shape: page}
 presidio_api: "Presidio\nHTTP /analyze" {shape: cylinder}
+ollama_api: "Ollama\nHTTP /api/chat" {shape: cylinder}
 stdout: "stdout\n(ANSI colored)" {shape: page}
 fs_out: "report.json" {shape: page}
 
 main: "main.rs" {
-  description: "CLI · per-file loop"
+  description: "CLI · backend selection\nper-file loop"
 }
 model: "model.rs" {
-  description: "shared types"
+  description: "shared types\n+ RunParams"
   style.fill: "#eeeeee"
 }
-client: "presidio_client.rs" {
-  description: "analyze(text, lang)"
+analyzer: "analyzer.rs" {
+  description: "trait Analyzer"
+  style.fill: "#eeeeee"
+}
+presidio_client: "presidio_client.rs" {
+  description: "impl Analyzer\nanalyze(text, lang)"
+}
+ollama_client: "ollama_client.rs" {
+  description: "impl Analyzer\nanalyze(text, lang)\nOption C offset resolution"
 }
 checker: "checker.rs" {
   description: "check() → SampleCounts\n+ Option<TestError>"
@@ -27,10 +36,16 @@ report: "report.rs" {
 
 # runtime data flow
 fs_in -> main: "walkdir\none file at a time"
-main -> client: "text, lang"
-client -> presidio_api: "POST /analyze\n{text, language}"
-presidio_api -> client: "Vec<RawSpan>"
-client -> main: "Result<Vec<PredictedSpan>>"
+fs_prompt -> ollama_client: "--system-prompt\n(or fallback ./llm-prompt.md)"
+main -> presidio_client: "text, lang\n(--backend presidio)"
+main -> ollama_client: "text, lang\n(--backend ollama)"
+presidio_client -> presidio_api: "POST /analyze\n{text, language}"
+presidio_api -> presidio_client: "[{entity_type, start, end}]"
+ollama_client -> ollama_api: "POST /api/chat\n{model, messages, stream:false}"
+ollama_api -> ollama_client: "{entities:[{entity_type,text,start,end}]}"
+ollama_client -> ollama_client: "Option C: validate offset\n→ fallback text search"
+presidio_client -> main: "Result<Vec<PredictedSpan>>"
+ollama_client -> main: "Result<Vec<PredictedSpan>>"
 main -> checker: "sample_id\npredicted, expected"
 checker -> main: "CheckResult\n(SampleCounts + Option<TestError>)"
 main -> stats: "add(counts, by_type, lang)"
@@ -39,8 +54,12 @@ report -> stdout
 report -> fs_out
 
 # compile-time type dependencies (dashed)
-model -> main:    {style.stroke-dash: 3; label: "types"}
-model -> client:  {style.stroke-dash: 3}
-model -> checker: {style.stroke-dash: 3}
-model -> stats:   {style.stroke-dash: 3}
-model -> report:  {style.stroke-dash: 3}
+model -> main:               {style.stroke-dash: 3; label: "types"}
+analyzer -> main:            {style.stroke-dash: 3; label: "trait"}
+analyzer -> presidio_client: {style.stroke-dash: 3}
+analyzer -> ollama_client:   {style.stroke-dash: 3}
+model -> presidio_client:    {style.stroke-dash: 3}
+model -> ollama_client:      {style.stroke-dash: 3}
+model -> checker:            {style.stroke-dash: 3}
+model -> stats:              {style.stroke-dash: 3}
+model -> report:             {style.stroke-dash: 3}
