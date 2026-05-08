@@ -41,6 +41,7 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
+    let start = std::time::Instant::now();
 
     let secs = now_secs();
     let generated_at = iso8601(secs);
@@ -146,6 +147,14 @@ fn main() -> Result<()> {
 
     let (global, by_entity_type, by_language) = stats.finalize();
 
+    let elapsed_secs = start.elapsed().as_secs();
+    let elapsed = format!(
+        "{:02}:{:02}:{:02}",
+        elapsed_secs / 3600,
+        (elapsed_secs % 3600) / 60,
+        elapsed_secs % 60,
+    );
+
     let report = EvalReport {
         version: VERSION.to_string(),
         generated_at,
@@ -156,6 +165,7 @@ fn main() -> Result<()> {
             api_errors: api_errors.len(),
             entities_expected,
             entities_predicted,
+            elapsed,
         },
         global,
         by_entity_type,

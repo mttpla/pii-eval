@@ -123,6 +123,7 @@ pub struct ReportSummary {
     pub api_errors: usize,
     pub entities_expected: usize,
     pub entities_predicted: usize,
+    pub elapsed: String,
 }
 
 #[derive(Debug, Serialize)]

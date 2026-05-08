@@ -76,8 +76,8 @@ pub fn print_console(report: &EvalReport) {
         report.version, report.generated_at,
     );
     println!(
-        "{DIM}files={}  samples={}  expected={}  predicted={}{RESET}\n",
-        s.files, s.samples, s.entities_expected, s.entities_predicted,
+        "{DIM}files={}  samples={}  expected={}  predicted={}  elapsed={}{RESET}\n",
+        s.files, s.samples, s.entities_expected, s.entities_predicted, s.elapsed,
     );
 
     print_params(&report.params);
