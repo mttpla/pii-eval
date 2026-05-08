@@ -1,0 +1,34 @@
+{
+  "samples": [
+    {
+      "id": "001",
+      "lang": "en",
+      "text": "The ocean does not hurry, and yet everything is accomplished. Tides come and go with a regularity that predates every calendar humans have ever invented, indifferent to the names we assign to months or the significance we attach to particular days. Standing at the edge of the water, one becomes aware of a particular quality of time that is absent from cities and offices: a time that is not divided into units, not measured against productivity, not spent or saved. It simply passes, in the way that water passes through rock — imperceptibly, but with absolute certainty of effect. The waves that arrive on the shore today are not the same waves that arrived yesterday, and yet the shore looks the same, and the sound is the same, and the feeling of standing there is the same. This sameness within constant change is one of the few things the sea offers that language struggles to capture. Poets have tried for centuries, and the best of them have managed only to gesture toward it, to point in the right direction and hope the reader fills in the rest from their own experience of standing somewhere similar, feeling something similar, reaching for words and finding them insufficient.",
+      "presidio_expected": []
+    },
+    {
+      "id": "002",
+      "lang": "en",
+      "text": "Bread is among the oldest manufactured foods, and its history runs parallel to the history of settled civilization in ways that are more than coincidental. To make bread, you need grain, and to have grain in reliable quantity, you need agriculture, and to sustain agriculture, you need a community that stays in one place long enough to plant, tend, and harvest. The act of leavening — allowing wild microorganisms to ferment the dough, causing it to rise — was almost certainly discovered by accident, and almost certainly discovered many times independently across different cultures and regions. What is remarkable is not the discovery itself but the decision to preserve it, to pay attention to what had happened and to repeat it deliberately. This is the difference between accident and invention: intention and transmission. A loaf of sourdough bread is the result of a chain of human decisions stretching back thousands of years, each generation teaching the next not just a technique but a relationship with invisible living things that do the actual work of fermentation. The baker provides the conditions; the microorganisms do the rest. There is a lesson somewhere in that arrangement about the nature of skill and the limits of control, though most people who bake bread think less about philosophy and more about crust.",
+      "presidio_expected": []
+    },
+    {
+      "id": "003",
+      "lang": "en",
+      "text": "Mountains change, but they change slowly enough that any single human life registers almost no difference. The geologist reads time in layers of rock the way a reader reads pages, moving through hundreds of millions of years in an afternoon's fieldwork, each stratum a chapter in a story of pressure and heat and slow collision. For most of us, this timescale is not merely difficult to imagine but actively resistant to imagination — the mind reaches for it and slides off, unable to hold a number that large in any meaningful way. We can say the words, we can write the figures, but we cannot feel a hundred million years the way we feel a decade or a century. This failure of imagination has consequences. When we make decisions about the natural world, we tend to make them on the timescales we can feel: years, decades at most. The processes we are affecting operate on timescales that dwarf our planning horizons entirely. There is no straightforward solution to this mismatch — you cannot train yourself to feel geological time — but acknowledging the gap is at least more honest than pretending it does not exist. The rocks will outlast the argument.",
+      "presidio_expected": []
+    },
+    {
+      "id": "004",
+      "lang": "en",
+      "text": "Sleep is the least glamorous of the body's requirements and the one most routinely sacrificed to the demands of modern productivity culture. Unlike hunger or thirst, which announce themselves loudly and with increasing urgency, sleep deprivation tends to impair the very faculties needed to recognize its own effects. A person who has been awake for twenty hours may feel entirely functional while performing significantly below their baseline on almost every measurable dimension of cognition. The irony is structural: the more you need sleep, the less able you are to accurately assess how much you need it. What makes this particularly consequential is that many of the tasks people sacrifice sleep to accomplish — complex reasoning, creative problem-solving, careful judgment — are precisely the tasks most degraded by insufficient rest. The efficiency calculation that seems to justify the late night almost always runs in the wrong direction. This is well established in the research literature and almost entirely ignored in practice, which suggests that the choice to undersleep is rarely made on rational grounds. It is made on grounds of habit, social expectation, and a persistent confusion between the hours spent awake and the hours spent doing something useful.",
+      "presidio_expected": []
+    },
+    {
+      "id": "005",
+      "lang": "en",
+      "text": "A library is one of the few remaining places where the logic of commerce has not entirely colonized the experience of being there. You do not need to buy anything to enter, you do not need to justify your presence with a purchase, and you are not tracked primarily as a consumer. You are there, at least in theory, to read or to think or to look for something — and the institution's purpose is to help you do that without asking much in return. This arrangement is unusual enough in contemporary life that it is worth pausing to notice it. The books on the shelves represent an accumulation of human thought across centuries, organized not by profitability but by subject, making adjacencies possible that no algorithm optimizing for engagement would ever produce. A book about the mathematics of knots sits next to a book about the history of sailing, which sits next to a memoir written by someone who spent years alone on a boat. The connection between them is not tracked, not monetized, not recommended based on your previous behavior. It simply exists, waiting for whoever happens to walk down that aisle and notice it. This is a different kind of discovery than the kind that happens online, and it produces a different kind of knowledge — slower, more accidental, and often more lasting.",
+      "presidio_expected": []
+    }
+  ]
+}

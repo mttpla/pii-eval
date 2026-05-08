@@ -1,0 +1,22 @@
+{
+  "samples": [
+    {
+      "id": "001",
+      "lang": "it",
+      "text": "Il bosco in autunno cambia colore lentamente, quasi senza che ci si accorga del momento esatto in cui il verde si trasforma in oro. Le foglie non cadono tutte insieme: alcune resistono settimane intere prima di cedere al vento, altre sembrano aspettare la prima pioggia per lasciarsi andare. È un processo silenzioso, privo di drammi, eppure carico di una certa malinconia che appartiene solo a questa stagione. Chi cammina tra gli alberi in quei giorni nota una luce diversa, più bassa e obliqua, che filtra tra i rami e disegna ombre lunghe sul terreno coperto di foglie secche. Il rumore sotto i piedi è croccante e soddisfacente, quasi come rompere qualcosa di fragile ma non prezioso. L'aria ha un odore che non si trova in nessun altro periodo dell'anno: un misto di umidità, terra smossa e legno antico. Alcuni lo trovano malinconico, altri lo considerano il profumo più onesto che la natura sappia produrre, perché non mente sulla stagione che sta arrivando.",
+      "presidio_expected": []
+    },
+    {
+      "id": "002",
+      "lang": "it",
+      "text": "La cucina tradizionale si basa su principi semplici che resistono al tempo molto meglio delle mode alimentari. Il primo è la stagionalità: usare ciò che cresce nel momento giusto, senza forzare la natura con serre o importazioni. Il secondo è la pazienza: certi sapori non si ottengono in fretta, e ogni tentativo di abbreviare i tempi porta a un risultato che assomiglia all'originale solo in superficie. Il terzo principio, forse il più difficile da trasmettere, è la proporzione: capire quanta quantità di un ingrediente serva per non coprire gli altri, per lasciare che ogni elemento si senta senza sovrastare. Chi ha imparato a cucinare guardando qualcuno farlo, piuttosto che leggendo istruzioni, conosce queste proporzioni in modo quasi fisico, senza poterle spiegare con parole precise. È una conoscenza che vive nelle mani prima che nella testa, e che si perde facilmente se non viene praticata con costanza.",
+      "presidio_expected": []
+    },
+    {
+      "id": "003",
+      "lang": "it",
+      "text": "Le macchine imparano a riconoscere schemi nei dati con una velocità che supera qualsiasi capacità umana di analisi manuale. Questo non significa che capiscano ciò che elaborano: uno strumento che identifica correttamente migliaia di immagini di gatti non sa cosa sia un gatto, non ha mai visto il mondo, non ha nessuna esperienza sensoriale a cui collegare quella parola. Eppure funziona, e funziona bene. La distinzione tra comprendere e riconoscere diventa sempre meno rilevante nel momento in cui i risultati pratici sono indistinguibili. Chi si occupa di questi sistemi tende a oscillare tra due atteggiamenti opposti: chi li sopravvaluta attribuendo loro qualità che non hanno, e chi li sottovaluta rifiutandosi di prendere sul serio prestazioni che smentiscono le aspettative precedenti. La realtà è più prosaica di entrambe le posizioni: sono strumenti potenti con limiti precisi, utili quando usati per quello che fanno bene, pericolosi quando applicati fuori dal loro dominio.",
+      "presidio_expected": []
+    }
+  ]
+}
