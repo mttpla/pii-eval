@@ -94,10 +94,10 @@ pub struct MetricSet {
     pub tp: usize,
     pub fp: usize,
     pub r#fn: usize,
-    pub precision: f64,
-    pub recall: f64,
-    pub f1: f64,
-    pub f2: f64,
+    pub precision: Option<f64>,
+    pub recall: Option<f64>,
+    pub f1: Option<f64>,
+    pub f2: Option<f64>,
 }
 
 #[derive(Debug, Clone, Default, Serialize)]

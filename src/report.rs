@@ -25,15 +25,28 @@ fn severity_color(s: &ErrorSeverity) -> &'static str {
 }
 
 fn print_metric_row(label: &str, m: &MetricSet) {
+    if m.precision.is_none() {
+        println!(
+            "  {DIM}{label:<10}{RESET}  \
+             {DIM}P=N/A   R=N/A   F1=N/A   F2=N/A   \
+             TP={} FP={} FN={}{RESET}",
+            m.tp, m.fp, m.r#fn,
+        );
+        return;
+    }
+    let p  = m.precision.unwrap();
+    let r  = m.recall.unwrap();
+    let f1 = m.f1.unwrap();
+    let f2 = m.f2.unwrap();
     println!(
         "  {DIM}{label:<10}{RESET}  \
          P={}{:.3}{RESET}  R={}{:.3}{RESET}  \
          F1={}{:.3}{RESET}  F2={}{:.3}{RESET}  \
          {DIM}TP={} FP={} FN={}{RESET}",
-        color(m.precision), m.precision,
-        color(m.recall),    m.recall,
-        color(m.f1),        m.f1,
-        color(m.f2),        m.f2,
+        color(p), p,
+        color(r), r,
+        color(f1), f1,
+        color(f2), f2,
         m.tp, m.fp, m.r#fn,
     );
 }

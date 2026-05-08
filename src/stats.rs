@@ -57,6 +57,10 @@ fn to_dual(c: &SampleCounts) -> DualMetrics {
 }
 
 fn compute_metrics(tp: usize, fp: usize, fn_: usize) -> MetricSet {
+    if tp + fp + fn_ == 0 {
+        return MetricSet { tp, fp, r#fn: fn_, precision: None, recall: None, f1: None, f2: None };
+    }
+
     let tp_f = tp as f64;
     let fp_f = fp as f64;
     let fn_f = fn_ as f64;
@@ -77,7 +81,7 @@ fn compute_metrics(tp: usize, fp: usize, fn_: usize) -> MetricSet {
         5.0 * precision * recall / (4.0 * precision + recall)
     };
 
-    MetricSet { tp, fp, r#fn: fn_, precision, recall, f1, f2 }
+    MetricSet { tp, fp, r#fn: fn_, precision: Some(precision), recall: Some(recall), f1: Some(f1), f2: Some(f2) }
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
@@ -89,37 +93,38 @@ mod tests {
     #[test]
     fn perfect_detection_all_ones() {
         let m = compute_metrics(10, 0, 0);
-        assert_eq!(m.precision, 1.0);
-        assert_eq!(m.recall, 1.0);
-        assert_eq!(m.f1, 1.0);
-        assert_eq!(m.f2, 1.0);
+        assert_eq!(m.precision, Some(1.0));
+        assert_eq!(m.recall, Some(1.0));
+        assert_eq!(m.f1, Some(1.0));
+        assert_eq!(m.f2, Some(1.0));
     }
 
     #[test]
-    fn all_zero_no_panic() {
+    fn all_zero_returns_none() {
+        // tp=fp=fn=0 → nothing to evaluate → all metrics undefined
         let m = compute_metrics(0, 0, 0);
-        assert_eq!(m.precision, 0.0);
-        assert_eq!(m.recall, 0.0);
-        assert_eq!(m.f1, 0.0);
-        assert_eq!(m.f2, 0.0);
+        assert_eq!(m.precision, None);
+        assert_eq!(m.recall, None);
+        assert_eq!(m.f1, None);
+        assert_eq!(m.f2, None);
     }
 
     #[test]
     fn only_false_positives() {
         // tp=0, fp=5, fn=0 → precision=0, recall=undefined(→0), f1=0
         let m = compute_metrics(0, 5, 0);
-        assert_eq!(m.precision, 0.0);
-        assert_eq!(m.recall, 0.0);
-        assert_eq!(m.f1, 0.0);
+        assert_eq!(m.precision, Some(0.0));
+        assert_eq!(m.recall, Some(0.0));
+        assert_eq!(m.f1, Some(0.0));
     }
 
     #[test]
     fn only_false_negatives() {
         // tp=0, fp=0, fn=5 → precision=undefined(→0), recall=0, f1=0
         let m = compute_metrics(0, 0, 5);
-        assert_eq!(m.precision, 0.0);
-        assert_eq!(m.recall, 0.0);
-        assert_eq!(m.f1, 0.0);
+        assert_eq!(m.precision, Some(0.0));
+        assert_eq!(m.recall, Some(0.0));
+        assert_eq!(m.f1, Some(0.0));
     }
 
     #[test]
@@ -130,9 +135,9 @@ mod tests {
         let high_recall = compute_metrics(5, 5, 0);
 
         // F2 should be higher when recall is high
-        assert!(high_recall.f2 > low_recall.f2);
+        assert!(high_recall.f2.unwrap() > low_recall.f2.unwrap());
         // F1 is symmetric, so it should be equal for these mirrored cases
-        let diff_f1 = (low_recall.f1 - high_recall.f1).abs();
+        let diff_f1 = (low_recall.f1.unwrap() - high_recall.f1.unwrap()).abs();
         assert!(diff_f1 < 1e-9);
     }
 
