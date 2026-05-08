@@ -1,0 +1,131 @@
+{
+  "samples": [
+    {
+      "id": "001",
+      "lang": "it",
+      "text": "Marco Bianchi ha aperto un nuovo studio fotografico in piazza Navona 12, Roma. L'inaugurazione è prevista per sabato prossimo, con ingresso libero fino alle 21.",
+      "presidio_expected": [
+        {
+          "entity_type": "PERSON",
+          "start": 0,
+          "end": 13
+        },
+        {
+          "entity_type": "LOCATION",
+          "start": 73,
+          "end": 77
+        }
+      ]
+    },
+    {
+      "id": "002",
+      "lang": "it",
+      "text": "Il convegno si terrà presso la Camera di Commercio di Firenze, in via Lorenzo il Magnifico 11. I relatori arriveranno da Milano, Torino e Bologna per discutere le prospettive del settore manifatturiero.",
+      "presidio_expected": [
+        {
+          "entity_type": "LOCATION",
+          "start": 54,
+          "end": 61
+        },
+        {
+          "entity_type": "LOCATION",
+          "start": 121,
+          "end": 127
+        },
+        {
+          "entity_type": "LOCATION",
+          "start": 129,
+          "end": 135
+        },
+        {
+          "entity_type": "LOCATION",
+          "start": 138,
+          "end": 145
+        }
+      ]
+    },
+    {
+      "id": "003",
+      "lang": "it",
+      "text": "Alessandra Russo ha trasferito la propria residenza da Venezia a Palermo nel corso del 2024. Il cambio di domicilio fiscale è stato comunicato all'Agenzia delle Entrate entro i termini previsti.",
+      "presidio_expected": [
+        {
+          "entity_type": "PERSON",
+          "start": 0,
+          "end": 16
+        },
+        {
+          "entity_type": "LOCATION",
+          "start": 55,
+          "end": 62
+        },
+        {
+          "entity_type": "LOCATION",
+          "start": 65,
+          "end": 72
+        }
+      ]
+    },
+    {
+      "id": "004",
+      "lang": "it",
+      "text": "Genova, 12 maggio 2025. Egregio dottor Francesco Ricci, le trasmettiamo in allegato la documentazione relativa all'immobile di sua proprietà sito in via XX Settembre 18, Genova. Rimaniamo a disposizione per qualsiasi chiarimento.",
+      "presidio_expected": [
+        {
+          "entity_type": "LOCATION",
+          "start": 0,
+          "end": 6
+        },
+        {
+          "entity_type": "PERSON",
+          "start": 39,
+          "end": 54
+        }
+      ]
+    },
+    {
+      "id": "005",
+      "lang": "it",
+      "text": "La centrale operativa, raggiungibile al numero +39 02 8745 0032, coordina gli interventi su tutto il territorio della provincia di Bari. Per urgenze è attivo il servizio h24.",
+      "presidio_expected": [
+        {
+          "entity_type": "PHONE_NUMBER",
+          "start": 47,
+          "end": 63
+        },
+        {
+          "entity_type": "LOCATION",
+          "start": 131,
+          "end": 135
+        }
+      ]
+    },
+    {
+      "id": "006",
+      "lang": "it",
+      "text": "Chiara Lombardi, responsabile del dipartimento acquisti, può essere contattata all'indirizzo chiara.lombardi@gruppolombardi.com oppure al +39 011 234 5678. La sede del gruppo si trova a Torino.",
+      "presidio_expected": [
+        {
+          "entity_type": "PERSON",
+          "start": 0,
+          "end": 15
+        },
+        {
+          "entity_type": "EMAIL_ADDRESS",
+          "start": 93,
+          "end": 127
+        },
+        {
+          "entity_type": "PHONE_NUMBER",
+          "start": 138,
+          "end": 154
+        },
+        {
+          "entity_type": "LOCATION",
+          "start": 186,
+          "end": 192
+        }
+      ]
+    }
+  ]
+}
