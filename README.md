@@ -35,7 +35,7 @@ pii-eval [OPTIONS]
 |----------|---------|-------------|
 | `--input <PATH>` | `./test-data` | Folder containing `.json` test files |
 | `--analyzer-url <URL>` | `http://localhost:5002/analyze` | Presidio Analyzer HTTP endpoint |
-| `--output <PATH>` | `presidio_eval_report.json` | Destination for the JSON report |
+| `--output <PATH>` | auto-generated | Destination for the JSON report. If omitted, the file is named `pii-eval-{version}-{YYYY-MM-DD_HH_mm_SS}.json` |
 | `--recursive` | `false` | Walk `--input` recursively |
 | `--verbose`, `-v` | `false` | Print per-sample TP/FP/FN counts while running |
 
@@ -90,6 +90,110 @@ Each `.json` file inside `--input` must follow this schema:
 You can split your test cases across as many files as you want.
 `pii-eval` reads **one file at a time** — it never loads the full dataset into memory.
 Each file is parsed, processed, and dropped before the next one is opened.
+
+---
+
+## Adding your own test cases
+
+Test data is the heart of this tool — the more varied and realistic the samples, the more meaningful the evaluation. **You are encouraged to add your own test files** covering your language, domain, and entity types. No code changes needed: just drop a `.json` file in the `--input` folder and run.
+
+### Step 1 — Create a test file
+
+Create a `.json` file anywhere inside your input folder (default: `test-data/`). The filename becomes the prefix of every sample ID in the report, so choose something descriptive:
+
+```
+test-data/
+  italian_names.json
+  english_addresses.json
+  no_pii_legal_text.json
+  edge_cases_email.json
+```
+
+### Step 2 — Write your samples
+
+Each file is a JSON object with a `samples` array. Every sample needs four fields:
+
+```json
+{
+  "samples": [
+    {
+      "id": "001",
+      "lang": "it",
+      "text": "Il dott. Luca Ferri abita in via Roma 12, Torino.",
+      "presidio_expected": [
+        { "entity_type": "PERSON",   "start": 9,  "end": 20 },
+        { "entity_type": "LOCATION", "start": 41, "end": 47 }
+      ]
+    }
+  ]
+}
+```
+
+If the text contains **no PII at all**, set `presidio_expected` to an empty array — any detection by Presidio will be reported as a false positive:
+
+```json
+{
+  "id": "002",
+  "lang": "en",
+  "text": "The forest changes colour slowly in autumn, almost without noticing.",
+  "presidio_expected": []
+}
+```
+
+### Step 3 — Get the offsets right
+
+Offsets are **byte positions** in the UTF-8 string: `start` is inclusive, `end` is exclusive. The easiest way to verify them is Python:
+
+```python
+text = "Il dott. Luca Ferri abita in via Roma 12, Torino."
+print(text[9:20])   # → "Luca Ferri"
+print(text[41:47])  # → "Torino"
+```
+
+A quick way to find offsets for any substring:
+
+```python
+text = "your full sample text here"
+target = "substring to find"
+start = text.index(target)
+end = start + len(target)
+print(f"start={start}, end={end}")
+```
+
+> **Tip**: if the text contains non-ASCII characters (accented letters, emoji), remember that Python `str` uses Unicode code points while Presidio works on UTF-8 bytes. For pure Latin text they coincide; for anything else, use `text.encode('utf-8')` to find byte offsets.
+
+### Step 4 — Choose the right entity type
+
+Use the exact Presidio entity type names. Common ones:
+
+| Entity type | Examples |
+|-------------|---------|
+| `PERSON` | names, surnames |
+| `LOCATION` | cities, countries, addresses |
+| `EMAIL_ADDRESS` | `mario@example.com` |
+| `PHONE_NUMBER` | `+39 02 1234567` |
+| `DATE_TIME` | `12/03/1985`, `next Monday` |
+| `IBAN_CODE` | `IT60X0542811101000000123456` |
+| `CREDIT_CARD` | `4111 1111 1111 1111` |
+| `IP_ADDRESS` | `192.168.1.1` |
+| `URL` | `https://example.com` |
+| `IT_FISCAL_CODE` | `RSSMRA85M01H501Z` |
+| `IT_VAT_CODE` | `IT12345678901` |
+| `IT_IDENTITY_CARD` | Italian carta d'identità number |
+| `IT_PASSPORT` | Italian passport number |
+| `US_SSN`, `US_PASSPORT` | US-specific identifiers |
+| `NHS_NUMBER` | UK National Health Service number |
+
+The full list depends on your Presidio configuration. Unsupported types will simply never match (all expected become false negatives).
+
+### Tips for good test data
+
+- **One concern per file** — group by scenario (`names_only.json`, `mixed_pii.json`, `no_pii_news_articles.json`). The filename appears in every error line of the report.
+- **Cover edge cases** — partial matches, PII embedded in longer strings, consecutive entities, entities at the start or end of the string.
+- **Test clean text too** — files with `presidio_expected: []` for every sample are valuable: they surface false positives on domain-specific vocabulary (legal, medical, technical).
+- **Use realistic text** — synthetic phrases like `"My name is John"` tell you less than actual sentences from your real documents.
+- **Mix languages in separate files** — one language per file is not required, but keeping them separate makes the `by_language` section of the report more readable.
+- **Keep files small** — a few dozen samples per file is ideal. `pii-eval` loads one file at a time, so there is no memory penalty for having many small files.
 
 ---
 
