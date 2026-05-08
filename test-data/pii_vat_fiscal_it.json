@@ -4,7 +4,7 @@
       "id": "001",
       "lang": "it",
       "text": "La Bianchi Costruzioni S.r.l., con partita IVA IT03752810239, ha presentato domanda di accesso al credito d'imposta per investimenti in beni strumentali. La sede legale si trova in via Torino 48, Bologna.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "IT_VAT_CODE",
           "start": 47,
@@ -21,7 +21,7 @@
       "id": "002",
       "lang": "it",
       "text": "Si comunica che la Ferri & Moretti S.p.A., P.IVA IT09124560152, è stata ammessa alla procedura di certificazione della parità di genere ai sensi della norma UNI/PdR 125:2022. La società ha sede a Milano, in corso Buenos Aires 72.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "IT_VAT_CODE",
           "start": 49,
@@ -38,7 +38,7 @@
       "id": "003",
       "lang": "it",
       "text": "Il professionista, dott. Lorenzo Cattaneo, titolare di partita IVA IT07816230965, esercita attività di consulenza fiscale presso il proprio studio di Torino. Per appuntamenti scrivere a lorenzo.cattaneo@studiocattaneo.it.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "IT_VAT_CODE",
           "start": 67,
@@ -60,7 +60,7 @@
       "id": "004",
       "lang": "it",
       "text": "La fattura n. 2025/047 è intestata a Rossi Impianti S.r.l., P.IVA IT02341870485, con sede in via Emilia Ponente 190, Parma. Importo totale: euro 4.800,00 IVA inclusa. Pagamento a 30 giorni.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "IT_VAT_CODE",
           "start": 66,
@@ -77,7 +77,7 @@
       "id": "005",
       "lang": "it",
       "text": "Il titolare Emanuele Caruso, codice fiscale CRSMLN78D15F205X, ha firmato il contratto di locazione per l'immobile sito in via Garibaldi 3, Napoli. Canone mensile concordato: 950 euro.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "IT_FISCAL_CODE",
           "start": 44,
@@ -94,7 +94,7 @@
       "id": "006",
       "lang": "it",
       "text": "Gentile sig.ra Giulia Ferretti, codice fiscale FRRGLL90C41L219B, la informiamo che la sua domanda di iscrizione all'albo è stata accettata. Riceverà la tessera all'indirizzo dichiarato in fase di registrazione.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "PERSON",
           "start": 15,

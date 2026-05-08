@@ -4,7 +4,7 @@
       "id": "001",
       "lang": "it",
       "text": "Marco Bianchi ha aperto un nuovo studio fotografico in piazza Navona 12, Roma. L'inaugurazione è prevista per sabato prossimo, con ingresso libero fino alle 21.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "PERSON",
           "start": 0,
@@ -21,7 +21,7 @@
       "id": "002",
       "lang": "it",
       "text": "Il convegno si terrà presso la Camera di Commercio di Firenze, in via Lorenzo il Magnifico 11. I relatori arriveranno da Milano, Torino e Bologna per discutere le prospettive del settore manifatturiero.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "LOCATION",
           "start": 54,
@@ -48,7 +48,7 @@
       "id": "003",
       "lang": "it",
       "text": "Alessandra Russo ha trasferito la propria residenza da Venezia a Palermo nel corso del 2024. Il cambio di domicilio fiscale è stato comunicato all'Agenzia delle Entrate entro i termini previsti.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "PERSON",
           "start": 0,
@@ -70,7 +70,7 @@
       "id": "004",
       "lang": "it",
       "text": "Genova, 12 maggio 2025. Egregio dottor Francesco Ricci, le trasmettiamo in allegato la documentazione relativa all'immobile di sua proprietà sito in via XX Settembre 18, Genova. Rimaniamo a disposizione per qualsiasi chiarimento.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "LOCATION",
           "start": 0,
@@ -87,7 +87,7 @@
       "id": "005",
       "lang": "it",
       "text": "La centrale operativa, raggiungibile al numero +39 02 8745 0032, coordina gli interventi su tutto il territorio della provincia di Bari. Per urgenze è attivo il servizio h24.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "PHONE_NUMBER",
           "start": 47,
@@ -104,7 +104,7 @@
       "id": "006",
       "lang": "it",
       "text": "Chiara Lombardi, responsabile del dipartimento acquisti, può essere contattata all'indirizzo chiara.lombardi@gruppolombardi.com oppure al +39 011 234 5678. La sede del gruppo si trova a Torino.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "PERSON",
           "start": 0,

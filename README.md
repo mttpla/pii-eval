@@ -1,16 +1,21 @@
 # pii-eval
 
-A Rust CLI tool that evaluates [Microsoft Presidio](https://microsoft.github.io/presidio/) PII detection quality against a labelled test dataset.
+A Rust CLI tool that evaluates PII detection quality against a labelled test dataset.
 
-It sends each test sample to a running Presidio analyzer, compares the response to the expected entities, accumulates precision/recall/F1/F2 metrics, and outputs a full report — both to the terminal (ANSI colored) and to a JSON file.
+It supports two backends:
+- **[Microsoft Presidio](https://microsoft.github.io/presidio/)** — rule-based NLP analyzer
+- **[Ollama](https://ollama.com/)** — local LLM (e.g. `qwen2.5:7b-instruct`) guided by a structured system prompt
+
+It sends each test sample to the configured backend, compares the response to the expected entities, accumulates precision/recall/F1/F2 metrics, and outputs a full report — both to the terminal (ANSI colored) and to a JSON file.
 
 ---
 
 ## Prerequisites
 
 - **Rust** stable toolchain (`rustup install stable`)
-- **Presidio Analyzer** reachable at an HTTP endpoint (see [Running Presidio locally](#running-presidio-locally))
 - **Git** (used by `build.rs` to embed the commit SHA as version string)
+- **Presidio Analyzer** — if using `--backend presidio` (see [Running Presidio locally](#running-presidio-locally))
+- **Ollama** — if using `--backend ollama` (see [Running Ollama locally](#running-ollama-locally))
 
 ---
 
@@ -34,16 +39,28 @@ pii-eval [OPTIONS]
 | Argument | Default | Description |
 |----------|---------|-------------|
 | `--input <PATH>` | `./test-data` | Folder containing `.json` test files |
-| `--analyzer-url <URL>` | `http://localhost:5002/analyze` | Presidio Analyzer HTTP endpoint |
+| `--analyzer-url <URL>` | `http://localhost:5002/analyze` | Analyzer endpoint — Presidio URL or Ollama `/api/chat` URL depending on `--backend` |
 | `--output <PATH>` | auto-generated | Destination for the JSON report. If omitted, the file is named `pii-eval-{version}-{YYYY-MM-DD_HH_mm_SS}.json` |
 | `--recursive` | `false` | Walk `--input` recursively |
 | `--verbose`, `-v` | `false` | Print per-sample TP/FP/FN counts while running |
+| `--backend <NAME>` | `presidio` | Backend to use: `presidio` or `ollama` |
+| `--ollama-model <MODEL>` | — | Ollama model name — **required** when `--backend ollama` |
+| `--system-prompt <PATH>` | `./llm-prompt.md` | Path to the LLM system prompt file (Ollama only) |
+| `--timeout-secs <N>` | `120` | HTTP timeout in seconds applied to all analyzer requests |
 
-### Example
+All parameters (including defaults) are recorded in the JSON report under `params` for full reproducibility.
+
+### Examples
 
 ```bash
-# run against local Presidio, read ./test-data, write report to my-report.json
+# Presidio backend (default)
 pii-eval --input ./test-data --output my-report.json --verbose
+
+# Ollama backend
+pii-eval --backend ollama \
+         --analyzer-url http://localhost:11434/api/chat \
+         --ollama-model qwen2.5:7b-instruct-q4_K_M \
+         --input ./test-data --verbose
 ```
 
 ---
@@ -59,7 +76,7 @@ Each `.json` file inside `--input` must follow this schema:
       "id": "001",
       "lang": "it",
       "text": "Mi chiamo Mario Rossi e abito a Milano",
-      "presidio_expected": [
+      "expected": [
         { "entity_type": "PERSON",   "start": 10, "end": 21 },
         { "entity_type": "LOCATION", "start": 32, "end": 38 }
       ]
@@ -75,12 +92,14 @@ Each `.json` file inside `--input` must follow this schema:
 | `id` | string | Unique identifier within the file. Will appear in the report as `<filename>::<id>` |
 | `lang` | string | BCP-47 language code passed to Presidio (e.g. `it`, `en`) |
 | `text` | string | The raw text to analyze |
-| `presidio_expected` | array | List of expected PII spans |
-| `presidio_expected[].entity_type` | string | Presidio entity type (e.g. `PERSON`, `EMAIL_ADDRESS`) |
-| `presidio_expected[].start` | integer | Byte offset of the span start (inclusive) |
-| `presidio_expected[].end` | integer | Byte offset of the span end (exclusive) |
+| `expected` | array | List of expected PII spans |
+| `expected[].entity_type` | string | Entity type (e.g. `PERSON`, `EMAIL_ADDRESS`) |
+| `expected[].start` | integer | Character offset of the span start (inclusive) |
+| `expected[].end` | integer | Character offset of the span end (exclusive) |
 
-> **Why no `text` inside `presidio_expected`?**
+> **`presidio_expected` is still accepted** as an alias for backward compatibility with existing test files.
+
+> **Why no `text` inside `expected`?**
 > The match logic works entirely on `entity_type + start + end`.
 > The text of the detected span is extracted from the sample `text` field on the fly when needed for display.
 > Storing it redundantly in the expected list would be a source of inconsistency and confusion.
@@ -120,7 +139,7 @@ Each file is a JSON object with a `samples` array. Every sample needs four field
       "id": "001",
       "lang": "it",
       "text": "Il dott. Luca Ferri abita in via Roma 12, Torino.",
-      "presidio_expected": [
+      "expected": [
         { "entity_type": "PERSON",   "start": 9,  "end": 20 },
         { "entity_type": "LOCATION", "start": 41, "end": 47 }
       ]
@@ -129,14 +148,14 @@ Each file is a JSON object with a `samples` array. Every sample needs four field
 }
 ```
 
-If the text contains **no PII at all**, set `presidio_expected` to an empty array — any detection by Presidio will be reported as a false positive:
+If the text contains **no PII at all**, set `expected` to an empty array — any detection by Presidio will be reported as a false positive:
 
 ```json
 {
   "id": "002",
   "lang": "en",
   "text": "The forest changes colour slowly in autumn, almost without noticing.",
-  "presidio_expected": []
+  "expected": []
 }
 ```
 
@@ -190,7 +209,7 @@ The full list depends on your Presidio configuration. Unsupported types will sim
 
 - **One concern per file** — group by scenario (`names_only.json`, `mixed_pii.json`, `no_pii_news_articles.json`). The filename appears in every error line of the report.
 - **Cover edge cases** — partial matches, PII embedded in longer strings, consecutive entities, entities at the start or end of the string.
-- **Test clean text too** — files with `presidio_expected: []` for every sample are valuable: they surface false positives on domain-specific vocabulary (legal, medical, technical).
+- **Test clean text too** — files with `expected: []` for every sample are valuable: they surface false positives on domain-specific vocabulary (legal, medical, technical).
 - **Use realistic text** — synthetic phrases like `"My name is John"` tell you less than actual sentences from your real documents.
 - **Mix languages in separate files** — one language per file is not required, but keeping them separate makes the `by_language` section of the report more readable.
 - **Keep files small** — a few dozen samples per file is ideal. `pii-eval` loads one file at a time, so there is no memory penalty for having many small files.
@@ -348,6 +367,65 @@ Samples with errors  (4 samples)
   "api_errors": []
 }
 ```
+
+---
+
+## Running Ollama locally
+
+### macOS / Linux — native (recommended)
+
+```bash
+# install
+brew install ollama          # macOS
+# or: curl -fsSL https://ollama.com/install.sh | sh   # Linux
+
+# start the server (runs in background on port 11434)
+ollama serve &
+
+# pull the model
+ollama pull qwen2.5:7b-instruct-q4_K_M
+
+# verify
+curl -s http://localhost:11434/api/tags | python3 -m json.tool
+```
+
+### Docker
+
+```bash
+# CPU only
+docker run -d \
+  --name ollama \
+  -p 11434:11434 \
+  -v ollama_data:/root/.ollama \
+  ollama/ollama
+
+# NVIDIA GPU
+docker run -d \
+  --name ollama \
+  --gpus all \
+  -p 11434:11434 \
+  -v ollama_data:/root/.ollama \
+  ollama/ollama
+
+# pull the model inside the container
+docker exec ollama ollama pull qwen2.5:7b-instruct-q4_K_M
+
+# verify
+curl -s http://localhost:11434/api/tags
+```
+
+Then run `pii-eval` pointing to the Ollama endpoint:
+
+```bash
+pii-eval --backend ollama \
+         --analyzer-url http://localhost:11434/api/chat \
+         --ollama-model qwen2.5:7b-instruct-q4_K_M \
+         --system-prompt ./llm-prompt.md \
+         --input ./test-data --verbose
+```
+
+> **Model not available?** If Ollama returns a "model not found" error, run
+> `ollama pull <model-name>` to download it, then retry.
 
 ---
 

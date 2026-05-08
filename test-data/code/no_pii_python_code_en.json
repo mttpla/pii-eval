@@ -4,19 +4,19 @@
       "id": "001",
       "lang": "en",
       "text": "from __future__ import annotations\nfrom dataclasses import dataclass\nfrom typing import Optional\n\n@dataclass\nclass Span:\n    entity_type: str\n    start: int\n    end: int\n\n    def overlaps(self, other: Span) -> bool:\n        return (\n            self.entity_type == other.entity_type\n            and self.start < other.end\n            and self.end > other.start\n        )\n\n    def is_strict_match(self, other: Span) -> bool:\n        return (\n            self.entity_type == other.entity_type\n            and self.start == other.start\n            and self.end == other.end\n        )\n\n@dataclass\nclass SampleCounts:\n    tp_strict: int = 0\n    fp_strict: int = 0\n    fn_strict: int = 0\n    tp_relaxed: int = 0\n    fp_relaxed: int = 0\n    fn_relaxed: int = 0\n\n    def precision(self, mode: str = \"strict\") -> float:\n        tp = getattr(self, f\"tp_{mode}\")\n        fp = getattr(self, f\"fp_{mode}\")\n        return tp / (tp + fp) if tp + fp > 0 else 0.0\n\n    def recall(self, mode: str = \"strict\") -> float:\n        tp = getattr(self, f\"tp_{mode}\")\n        fn = getattr(self, f\"fn_{mode}\")\n        return tp / (tp + fn) if tp + fn > 0 else 0.0\n\n    def f1(self, mode: str = \"strict\") -> float:\n        p, r = self.precision(mode), self.recall(mode)\n        return 2 * p * r / (p + r) if p + r > 0 else 0.0",
-      "presidio_expected": []
+      "expected": []
     },
     {
       "id": "002",
       "lang": "en",
       "text": "import json\nimport urllib.request\nimport urllib.error\nfrom dataclasses import dataclass\nfrom typing import List\n\n@dataclass\nclass PresidioSpan:\n    entity_type: str\n    start: int\n    end: int\n    score: float\n\ndef analyze(text: str, language: str, url: str) -> List[PresidioSpan]:\n    payload = json.dumps({\n        \"text\": text,\n        \"language\": language,\n        \"score_threshold\": 0.35,\n    }).encode(\"utf-8\")\n\n    req = urllib.request.Request(\n        url,\n        data=payload,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n\n    try:\n        with urllib.request.urlopen(req) as resp:\n            body = resp.read().decode(\"utf-8\")\n            items = json.loads(body)\n            return [\n                PresidioSpan(\n                    entity_type=item[\"entity_type\"],\n                    start=item[\"start\"],\n                    end=item[\"end\"],\n                    score=item[\"score\"],\n                )\n                for item in items\n            ]\n    except urllib.error.HTTPError as exc:\n        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n        raise RuntimeError(f\"HTTP {exc.code} from Presidio: {body}\") from exc",
-      "presidio_expected": []
+      "expected": []
     },
     {
       "id": "003",
       "lang": "en",
       "text": "from __future__ import annotations\nfrom pathlib import Path\nfrom typing import Dict, List, Optional\n\nANSI_GREEN  = \"\\x1b[32m\"\nANSI_YELLOW = \"\\x1b[33m\"\nANSI_RED    = \"\\x1b[31m\"\nANSI_DIM    = \"\\x1b[2m\"\nANSI_RESET  = \"\\x1b[0m\"\n\ndef color_score(value: Optional[float]) -> str:\n    if value is None:\n        return ANSI_DIM\n    if value >= 0.85:\n        return ANSI_GREEN\n    if value >= 0.60:\n        return ANSI_YELLOW\n    return ANSI_RED\n\ndef print_metric_row(\n    label: str,\n    tp: int, fp: int, fn: int,\n    precision: Optional[float],\n    recall: Optional[float],\n    f1: Optional[float],\n    f2: Optional[float],\n) -> None:\n    if precision is None:\n        print(\n            f\"  {ANSI_DIM}{label:<10}{ANSI_RESET}  \"\n            f\"{ANSI_DIM}P=N/A   R=N/A   F1=N/A   F2=N/A   \"\n            f\"TP={tp} FP={fp} FN={fn}{ANSI_RESET}\"\n        )\n        return\n    print(\n        f\"  {ANSI_DIM}{label:<10}{ANSI_RESET}  \"\n        f\"P={color_score(precision)}{precision:.3f}{ANSI_RESET}  \"\n        f\"R={color_score(recall)}{recall:.3f}{ANSI_RESET}  \"\n        f\"F1={color_score(f1)}{f1:.3f}{ANSI_RESET}  \"\n        f\"F2={color_score(f2)}{f2:.3f}{ANSI_RESET}  \"\n        f\"{ANSI_DIM}TP={tp} FP={fp} FN={fn}{ANSI_RESET}\"\n    )",
-      "presidio_expected": []
+      "expected": []
     }
   ]
 }

@@ -16,7 +16,8 @@ pub struct TestSample {
     pub id: String,
     pub lang: String,
     pub text: String,
-    pub presidio_expected: Vec<ExpectedEntity>,
+    #[serde(alias = "presidio_expected")]
+    pub expected: Vec<ExpectedEntity>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -133,6 +134,10 @@ pub struct RunParams {
     pub output: String,
     pub recursive: bool,
     pub verbose: bool,
+    pub backend: String,
+    pub ollama_model: Option<String>,
+    pub system_prompt_path: Option<String>,
+    pub timeout_secs: u64,
 }
 
 #[derive(Debug, Serialize)]

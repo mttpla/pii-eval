@@ -4,7 +4,7 @@
       "id": "001",
       "lang": "en",
       "text": "James Whitfield has relocated his consultancy practice to 34 King Street, Edinburgh, following the expansion of the firm's operations in Scotland. The new office will be fully operational by the end of the month.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "PERSON",
           "start": 0,
@@ -21,7 +21,7 @@
       "id": "002",
       "lang": "en",
       "text": "The annual conference will be hosted at the Convention Centre in Chicago from 14 to 16 October. Delegates travelling from New York and Los Angeles are advised to book accommodation in advance.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "LOCATION",
           "start": 65,
@@ -43,7 +43,7 @@
       "id": "003",
       "lang": "en",
       "text": "Dr. Sarah Mitchell, lead researcher at the institute, confirmed that the trial results will be published next quarter. Her team is based in Boston and collaborates closely with partners in London.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "PERSON",
           "start": 4,
@@ -65,7 +65,7 @@
       "id": "004",
       "lang": "en",
       "text": "The property located at 82 Elm Grove, Bristol, BS6 6JE, has been listed for sale at an asking price of £425,000. Viewings can be arranged through the estate agent on Whiteladies Road.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "LOCATION",
           "start": 38,
@@ -77,7 +77,7 @@
       "id": "005",
       "lang": "en",
       "text": "Toronto, 8 May 2025. Dear Mr. Oliver Hartmann, please find enclosed the revised terms of the service agreement. Our legal team in Toronto remains available should you require further clarification.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "LOCATION",
           "start": 0,
@@ -94,7 +94,7 @@
       "id": "006",
       "lang": "en",
       "text": "Shipments originating from Frankfurt are routed through Amsterdam before reaching the final destination in Singapore. Transit time is typically five working days under normal customs conditions.",
-      "presidio_expected": [
+      "expected": [
         {
           "entity_type": "LOCATION",
           "start": 27,

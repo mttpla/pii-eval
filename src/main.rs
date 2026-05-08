@@ -1,5 +1,7 @@
+mod analyzer;
 mod checker;
 mod model;
+mod ollama_client;
 mod presidio_client;
 mod report;
 mod stats;
@@ -10,7 +12,9 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use walkdir::WalkDir;
 
+use crate::analyzer::Analyzer;
 use crate::model::{ApiError, EvalReport, ReportSummary, RunParams, TestFile};
+use crate::ollama_client::OllamaClient;
 use crate::presidio_client::PresidioClient;
 use crate::stats::Stats;
 
@@ -19,13 +23,14 @@ const VERSION: &str = env!("GIT_SHA");
 #[derive(Parser, Debug)]
 #[command(
     name = "pii-eval",
-    about = "Evaluate PII detection quality against a Presidio analyzer",
+    about = "Evaluate PII detection quality against Presidio or an Ollama LLM",
     version = VERSION,
 )]
 struct Args {
     #[arg(long, default_value = "./test-data")]
     input: PathBuf,
 
+    /// Analyzer endpoint — Presidio URL or Ollama /api/chat URL depending on --backend
     #[arg(long, default_value = "http://localhost:5002/analyze")]
     analyzer_url: String,
 
@@ -37,6 +42,22 @@ struct Args {
 
     #[arg(long, short, default_value_t = false)]
     verbose: bool,
+
+    /// Backend to use: "presidio" (default) or "ollama"
+    #[arg(long, default_value = "presidio")]
+    backend: String,
+
+    /// Ollama model name — required when --backend ollama
+    #[arg(long)]
+    ollama_model: Option<String>,
+
+    /// Path to the LLM system prompt file — optional, falls back to ./llm-prompt.md
+    #[arg(long)]
+    system_prompt: Option<PathBuf>,
+
+    /// HTTP timeout in seconds applied to all analyzer requests
+    #[arg(long, default_value_t = 120)]
+    timeout_secs: u64,
 }
 
 fn main() -> Result<()> {
@@ -45,21 +66,27 @@ fn main() -> Result<()> {
 
     let secs = now_secs();
     let generated_at = iso8601(secs);
+
+    // build_analyzer borrows &args — must happen before any field is partially moved
+    let (analyzer, ollama_model, system_prompt_path) = build_analyzer(&args)?;
+
     let output_path = args.output.unwrap_or_else(|| {
         PathBuf::from(format!("pii-eval-{}-{}.json", VERSION, filename_ts(secs)))
     });
 
     let params = RunParams {
-        input:        args.input.display().to_string(),
-        analyzer_url: args.analyzer_url.clone(),
-        output:       output_path.display().to_string(),
-        recursive:    args.recursive,
-        verbose:      args.verbose,
+        input:              args.input.display().to_string(),
+        analyzer_url:       args.analyzer_url,
+        output:             output_path.display().to_string(),
+        recursive:          args.recursive,
+        verbose:            args.verbose,
+        backend:            args.backend,
+        ollama_model,
+        system_prompt_path,
+        timeout_secs:       args.timeout_secs,
     };
 
-    let client = PresidioClient::new(&args.analyzer_url);
     let mut stats = Stats::new();
-
     let mut file_count: usize = 0;
     let mut sample_count: usize = 0;
     let mut entities_expected: usize = 0;
@@ -100,17 +127,17 @@ fn main() -> Result<()> {
             sample.id = format!("{}::{}", stem, sample.id);
             sample_count += 1;
 
-            match client.analyze(&sample.text, &sample.lang) {
+            match analyzer.analyze(&sample.text, &sample.lang) {
                 Ok(predicted) => {
                     if args.verbose {
                         eprintln!("[>] {}", sample.id);
                     }
 
-                    entities_expected += sample.presidio_expected.len();
+                    entities_expected += sample.expected.len();
                     entities_predicted += predicted.len();
 
                     let result =
-                        checker::check(&sample.id, &sample.text, &predicted, &sample.presidio_expected);
+                        checker::check(&sample.id, &sample.text, &predicted, &sample.expected);
 
                     if args.verbose {
                         let c = &result.counts;
@@ -179,6 +206,30 @@ fn main() -> Result<()> {
     eprintln!("Report saved to {}", output_path.display());
 
     Ok(())
+}
+
+fn build_analyzer(args: &Args) -> Result<(Box<dyn Analyzer>, Option<String>, Option<String>)> {
+    match args.backend.as_str() {
+        "presidio" => Ok((
+            Box::new(PresidioClient::new(&args.analyzer_url, args.timeout_secs)),
+            None,
+            None,
+        )),
+        "ollama" => {
+            let model = args.ollama_model.clone()
+                .ok_or_else(|| anyhow::anyhow!("--ollama-model is required when --backend ollama"))?;
+            let prompt_path = args.system_prompt.clone()
+                .unwrap_or_else(|| PathBuf::from("llm-prompt.md"));
+            let prompt = std::fs::read_to_string(&prompt_path)
+                .with_context(|| format!("system prompt not found: {}", prompt_path.display()))?;
+            Ok((
+                Box::new(OllamaClient::new(&args.analyzer_url, &model, &prompt, args.timeout_secs)),
+                Some(model),
+                Some(prompt_path.display().to_string()),
+            ))
+        }
+        other => anyhow::bail!("unknown backend {:?} — use 'presidio' or 'ollama'", other),
+    }
 }
 
 // ── Timestamp ──────────────────────────────────────────────────────────────────

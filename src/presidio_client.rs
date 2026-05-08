@@ -1,7 +1,10 @@
+use std::time::Duration;
+
 use anyhow::{Context, Result};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 
+use crate::analyzer::Analyzer;
 use crate::model::PredictedSpan;
 
 #[derive(Serialize)]
@@ -23,15 +26,21 @@ pub struct PresidioClient {
 }
 
 impl PresidioClient {
-    pub fn new(url: &str) -> Self {
-        Self { client: Client::new(), url: url.to_string() }
+    pub fn new(url: &str, timeout_secs: u64) -> Self {
+        let client = Client::builder()
+            .timeout(Duration::from_secs(timeout_secs))
+            .build()
+            .expect("failed to build HTTP client");
+        Self { client, url: url.to_string() }
     }
+}
 
-    pub fn analyze(&self, text: &str, language: &str) -> Result<Vec<PredictedSpan>> {
+impl Analyzer for PresidioClient {
+    fn analyze(&self, text: &str, lang: &str) -> Result<Vec<PredictedSpan>> {
         let resp = self
             .client
             .post(&self.url)
-            .json(&AnalyzeRequest { text, language })
+            .json(&AnalyzeRequest { text, language: lang })
             .send()
             .with_context(|| format!("cannot reach Presidio at {}", self.url))?;
 
