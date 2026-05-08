@@ -10,10 +10,6 @@
 | [0004](0004_na_zero_metrics.md) | N/A display for zero-count metric rows |
 | [0005](0005_elapsed_time.md) | Total execution time in report and stdout |
 
-## In Progress
-
-| Plan | Title |
-|---|---|
 | [0006](0006_ollama_backend.md) | Ollama LLM backend — trait Analyzer, OllamaClient, Option C offset resolution, all CLI params in report |
 
 ## To Do (no number assigned yet)
