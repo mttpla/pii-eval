@@ -12,3 +12,4 @@ pii-eval-*.json
 .vscode/
 *.swp
 *.swo
+.tokensave
