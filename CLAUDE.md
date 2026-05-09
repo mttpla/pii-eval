@@ -77,17 +77,47 @@ text[start:end]  # should match the intended entity text exactly
 
 Implementation plans live in `docs/plans/`. Naming convention: `NNNN_topic.md` where `NNNN` is the next zero-padded 4-digit number and `topic` is snake_case.
 
-Examples:
+**Always use the `superpowers:writing-plans` skill** to write a new plan — it produces the standard header, bite-sized TDD tasks with checkboxes (`- [ ]`), and a self-review pass.
+
+**To execute a plan**, use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans`.
+
+### Mandatory plan header
+
+```markdown
+# [Feature Name] Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** [one sentence]
+**Architecture:** [2-3 sentences]
+**Tech Stack:** Rust, Cargo, anyhow, serde, reqwest
 ```
-docs/plans/0001_initial_build.md
-docs/plans/0002_output_params.md
-docs/plans/0003_span_text.md
-docs/plans/0004_my_next_change.md   ← next one
+
+### Task structure (bite-sized, TDD)
+
+Each task = one file/component. Steps are 2-5 min each:
+
+```markdown
+### Task N: [Name]
+
+**Files:**
+- Create/Modify: `src/file.rs`
+- Test: inline unit tests in same file
+
+- [ ] Write the failing test (actual test code here)
+- [ ] Run `cargo test <name>` — expected: FAIL
+- [ ] Write minimal implementation (actual code here)
+- [ ] Run `cargo test <name>` — expected: PASS
+- [ ] `git commit -m "feat: ..."`
 ```
+
+No placeholders ("TBD", "add appropriate error handling", etc.) — every step shows real code and expected command output.
+
+### Index
 
 Always create a new file — never edit a completed plan.
 
 `docs/plans/INDEX.md` is the authoritative backlog. Keep it up to date:
-- Mark a plan **Completed** when all its tasks are done and merged.
-- Move items from **To Do** to a numbered plan file when work begins, and set it to **In Progress**.
-- Add new **To Do** entries (no number yet) for future improvements or bugs discovered during a plan.
+- Move items from **Backlog** to a numbered plan file when work begins.
+- Mark a plan **Completed** when all checkboxes are done and merged.
+- Progress within a plan is tracked by its own checkboxes — INDEX.md does not track "In Progress".
