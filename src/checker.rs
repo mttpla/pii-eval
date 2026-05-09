@@ -191,11 +191,13 @@ fn build_error(
 }
 
 fn span_with_text(entity_type: &str, start: usize, end: usize, source: &str) -> SpanWithText {
+    let start_byte = crate::unicode::char_to_byte(source, start);
+    let end_byte   = crate::unicode::char_to_byte(source, end);
     SpanWithText {
         entity_type: entity_type.to_string(),
         start,
         end,
-        text: source.get(start..end).unwrap_or("").to_string(),
+        text: source.get(start_byte..end_byte).unwrap_or("").to_string(),
     }
 }
 
@@ -328,5 +330,34 @@ mod tests {
         let result3 = check("t::1", source, &[pred("LOCATION", 32, 38)], &[]);
         let err3 = result3.error.unwrap();
         assert_eq!(err3.false_positives[0].text, "Milano");
+    }
+
+    #[test]
+    fn extracted_text_multibyte_chars() {
+        // "Mi chiamo Léa Dubois"
+        // char layout: M(0)i(1) (2)c(3)h(4)i(5)a(6)m(7)o(8) (9)L(10)é(11)a(12) (13)D(14)u(15)b(16)o(17)i(18)s(19)
+        // "Léa" = chars 10..13, bytes 10..14 (é is 2 bytes)
+        // "Dubois" = chars 14..20, bytes 15..21
+        let source = "Mi chiamo Léa Dubois";
+
+        // FP: predicted "Léa" at char 10..13
+        let r = check("t::1", source, &[pred("PERSON", 10, 13)], &[]);
+        let err = r.error.unwrap();
+        assert_eq!(err.false_positives[0].text, "Léa");
+
+        // FP: predicted "Dubois" at char 14..20
+        let r2 = check("t::1", source, &[pred("LOCATION", 14, 20)], &[]);
+        let err2 = r2.error.unwrap();
+        assert_eq!(err2.false_positives[0].text, "Dubois");
+
+        // NearMiss: predicted chars 10..20 "Léa Dubois", expected chars 14..20 "Dubois"
+        let r3 = check(
+            "t::1", source,
+            &[pred("PERSON", 10, 20)],
+            &[exp("PERSON", 14, 20)],
+        );
+        let err3 = r3.error.unwrap();
+        assert_eq!(err3.near_misses[0].obtained.text, "Léa Dubois");
+        assert_eq!(err3.near_misses[0].expected.text, "Dubois");
     }
 }
