@@ -1,3 +1,5 @@
+/// Converts a Unicode char offset to a UTF-8 byte offset.
+/// Returns `text.len()` if `char_offset >= text.chars().count()`.
 pub fn char_to_byte(text: &str, char_offset: usize) -> usize {
     text.char_indices()
         .nth(char_offset)
@@ -5,8 +7,21 @@ pub fn char_to_byte(text: &str, char_offset: usize) -> usize {
         .unwrap_or(text.len())
 }
 
+/// Converts a UTF-8 byte offset to a Unicode char offset.
+/// If `byte_offset` is not on a char boundary, returns the count of complete
+/// chars before that byte (floor behaviour, never panics).
 pub fn byte_to_char(text: &str, byte_offset: usize) -> usize {
-    text[..byte_offset].chars().count()
+    let clamped = byte_offset.min(text.len());
+    let mut count = 0;
+    for (byte_pos, ch) in text.char_indices() {
+        let char_end = byte_pos + ch.len_utf8();
+        if char_end <= clamped {
+            count += 1;
+        } else {
+            break;
+        }
+    }
+    count
 }
 
 #[cfg(test)]
@@ -65,5 +80,17 @@ mod tests {
             let byte_offset = char_to_byte(text, char_offset);
             assert_eq!(byte_to_char(text, byte_offset), char_offset);
         }
+    }
+
+    #[test]
+    fn byte_to_char_empty_string() {
+        assert_eq!(byte_to_char("", 0), 0);
+    }
+
+    #[test]
+    fn byte_to_char_non_char_boundary_floors() {
+        // "cafè": è is bytes 3-4. byte 4 is the middle of è.
+        // floor behaviour: only 3 complete chars before byte 4 → returns 3
+        assert_eq!(byte_to_char("cafè", 4), 3);
     }
 }
