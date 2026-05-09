@@ -30,7 +30,7 @@ If no PII is found, return {"entities": []}.
 - IT_DRIVER_LICENSE — Italian patente di guida
 - ORGANIZATION — company/organization names ONLY when they reveal something private (employer of a specific person, client of a confidential deal). Skip well-known public entities mentioned generically.
 - NRP — nationality, religion, or political group affiliation tied to an individual
-- MEDICAL_LICENSE — medical license numbers
+- MEDICAL_LICENSE — medical license **number strings** (alphanumeric codes issued by a licensing body). Do NOT emit MEDICAL_LICENSE for titles such as "dott.", "dott.ssa", "Dr." — those belong to the PERSON span rule above, and the title itself is excluded from the span.
 
 # Critical rules
 
@@ -38,6 +38,8 @@ If no PII is found, return {"entities": []}.
 The "text" value must be copy-pasted from the input EXACTLY as it appears: same case, same punctuation, same whitespace, same accents. Do not normalize "Mario  Rossi" (two spaces) into "Mario Rossi". Do not strip surrounding punctuation.
 
 The `start` and `end` offsets must be consistent with `text`: `input[start:end]` must equal the `text` value exactly. If they are inconsistent, the downstream system will attempt a text search fallback, but exact matches are always preferred.
+
+Honorific titles and professional prefixes — `Dr.`, `Mr.`, `Mrs.`, `Ms.`, `Sig.`, `Sig.ra`, `dott.`, `dott.ssa`, `dottor`, `dottoressa`, `Avv.`, `Ing.`, `Prof.`, `Egregio`, `Gentile` — must **not** be included in the `PERSON` span. The span starts at the given name. Example: `"Dr. Sarah Mitchell"` → `"text": "Sarah Mitchell"`, `"start": 4`, `"end": 18`.
 
 ## Rule 2: One entry per occurrence, with its own offsets
 If the same PII appears 3 times, emit 3 separate entries. Do not deduplicate. Each entry must carry the `start` and `end` offsets of that specific occurrence — two entries for the same text will have different `start`/`end` values.
@@ -132,4 +134,13 @@ Input:
 Output:
 {"entities":[
   {"entity_type":"IT_VAT_CODE","text":"IT09124560152","start":73,"end":86}
+]}
+
+Input:
+"Egregio dottor Francesco Ricci, le trasmettiamo la documentazione sito in via XX Settembre 18, Genova."
+
+Output:
+{"entities":[
+  {"entity_type":"PERSON","text":"Francesco Ricci","start":15,"end":30},
+  {"entity_type":"LOCATION","text":"via XX Settembre 18, Genova","start":74,"end":101}
 ]}
