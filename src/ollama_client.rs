@@ -162,23 +162,32 @@ fn resolve_offset(source: &str, entity: &LlmEntity, used: &[(usize, usize)]) -> 
         return None;
     }
 
-    // step 1: validate LLM-provided offsets
+    // step 1: validate LLM-provided offsets (entity.start/end are char offsets)
     let llm_range = (entity.start, entity.end);
-    if source.get(entity.start..entity.end) == Some(entity.text.as_str())
+    let start_byte = crate::unicode::char_to_byte(source, entity.start);
+    let end_byte   = crate::unicode::char_to_byte(source, entity.end);
+    if source.get(start_byte..end_byte) == Some(entity.text.as_str())
         && !overlaps_any(llm_range, used)
     {
-        return Some(llm_range);
+        return Some(llm_range); // already char offsets, return as-is
     }
 
-    // step 2: text-search fallback (returns correct UTF-8 byte offsets)
+    // step 2: text-search fallback
     find_next_occurrence(source, &entity.text, used)
 }
 
 fn find_next_occurrence(source: &str, needle: &str, used: &[(usize, usize)]) -> Option<(usize, usize)> {
     source
         .match_indices(needle)
-        .find(|(start, s)| !overlaps_any((*start, start + s.len()), used))
-        .map(|(start, s)| (start, start + s.len()))
+        .find_map(|(byte_start, s)| {
+            let char_start = crate::unicode::byte_to_char(source, byte_start);
+            let char_end   = crate::unicode::byte_to_char(source, byte_start + s.len());
+            if !overlaps_any((char_start, char_end), used) {
+                Some((char_start, char_end))
+            } else {
+                None
+            }
+        })
 }
 
 fn overlaps_any(range: (usize, usize), used: &[(usize, usize)]) -> bool {
@@ -331,6 +340,40 @@ mod tests {
         assert_eq!(spans[1].entity_type, "LOCATION");
         assert_eq!(spans[1].start, 17);
         assert_eq!(spans[1].end, 22);
+    }
+
+    // -- resolve_offset / find_next_occurrence with multibyte chars
+
+    #[test]
+    fn resolve_offset_multibyte_valid_char_offsets() {
+        // "Mi chiamo Léa Dubois"
+        // "Léa" = chars 10..13
+        let src = "Mi chiamo Léa Dubois";
+        let e = entity("PERSON", "Léa", 10, 13);
+        assert_eq!(resolve_offset(src, &e, &[]), Some((10, 13)));
+    }
+
+    #[test]
+    fn resolve_offset_multibyte_invalid_offsets_fallback() {
+        // LLM emits garbage offsets but correct text → fallback to text search → char offsets
+        let src = "Mi chiamo Léa Dubois";
+        let e = entity("PERSON", "Léa", 999, 1002);
+        assert_eq!(resolve_offset(src, &e, &[]), Some((10, 13)));
+    }
+
+    #[test]
+    fn find_next_occurrence_multibyte_returns_char_offsets() {
+        // "Léa" in "Mi chiamo Léa Dubois": byte 10..14, char 10..13
+        // Must return char offsets (10, 13), NOT byte offsets (10, 14)
+        let src = "Mi chiamo Léa Dubois";
+        assert_eq!(find_next_occurrence(src, "Léa", &[]), Some((10, 13)));
+    }
+
+    #[test]
+    fn find_next_occurrence_multibyte_skips_used_char_offsets() {
+        // "Léa e Léa": first Léa = chars 0..3, second Léa = chars 6..9
+        let src = "Léa e Léa";
+        assert_eq!(find_next_occurrence(src, "Léa", &[(0, 3)]), Some((6, 9)));
     }
 
     // -- parse_entities
