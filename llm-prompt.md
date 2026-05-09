@@ -60,9 +60,12 @@ When the input contains source code, follow this strictly:
 - Job titles without names: "il direttore", "the CEO"
 - Public figures mentioned in a non-private context (e.g. "secondo Einstein, E=mc²")
 - Fictional/historical characters: "Sherlock Holmes", "Giulio Cesare"
-- Brand and product names that are not organizations doing private business with a person
+- Company or organization names mentioned as the **subject** of a document (invoices, certifications, registrations) where the company itself is the data subject — the PII is the VAT/fiscal code, not the name. Emit ORGANIZATION only when the name reveals a private relationship between a named individual and that organization (e.g. "Mario Rossi works at Acme S.r.l." → Acme is relevant context for Mario).
 - Numbers that look like phone numbers but are clearly something else (order IDs, version numbers, ports, ISBN, error codes, line numbers)
 - Dates that are not tied to a person (build dates, software versions, generic historical dates)
+- Dates in letter/document headers such as "Roma, 12 maggio 2025" or "Toronto, 8 May 2025" — these are the document date, not a personal date tied to an individual
+- Event or conference date ranges ("14 to 16 October", "dal 3 al 5 marzo") — not tied to a specific person's record
+- Bare years or vague time references ("del 2024", "negli anni '90", "in 2025") — not actionable personal data
 
 ## Rule 6: Italian-language awareness
 The input may be in Italian. Recognize Italian patterns:
@@ -121,4 +124,12 @@ Output:
 {"entities":[
   {"entity_type":"PERSON","text":"Mario Rossi","start":0,"end":11},
   {"entity_type":"PERSON","text":"Mario Rossi","start":24,"end":35}
+]}
+
+Input:
+"Milano, 3 aprile 2025. Gentile cliente, la Ferri & Moretti S.p.A., P.IVA IT09124560152, ha ricevuto la sua richiesta."
+
+Output:
+{"entities":[
+  {"entity_type":"IT_VAT_CODE","text":"IT09124560152","start":73,"end":86}
 ]}
