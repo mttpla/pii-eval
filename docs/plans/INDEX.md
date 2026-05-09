@@ -10,10 +10,11 @@
 | [0004](0004_na_zero_metrics.md) | N/A display for zero-count metric rows |
 | [0005](0005_elapsed_time.md) | Total execution time in report and stdout |
 | [0006](0006_ollama_backend.md) | Ollama LLM backend — trait Analyzer, OllamaClient, Option C offset resolution, all CLI params in report |
+| [2026-05-09](../superpowers/plans/2026-05-09-unicode-char-offsets.md) | Unicode char offsets — src/unicode.rs helpers, fix checker.rs + ollama_client.rs to use char offsets consistently |
 
 ## Backlog
 
 | Priority | Title | Description |
 |---|---|---|
-| high | Fix char/byte offset mismatch | Presidio (Python) returns character offsets; Rust treats them as byte offsets. Invisible on ASCII, breaks on accented Italian text (e.g. "è", "à"). Must be fixed before adding non-ASCII test data. |
+| medium | Prompts folder + report comparison tool | Move llm-prompt.md to prompts/ with versioned variants (v1, v2…). Add a CLI subcommand or script to diff two report JSONs side-by-side (delta per entity type and language). pii-eval is a benchmark, not a prompt optimizer — prompts and models are the variables, test data is the constant. |
 | low | Ollama model-not-available error | When the requested model is not loaded, surface a clear error and suggest running `ollama pull <model-name>` instead of a generic api_error. |
