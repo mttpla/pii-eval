@@ -75,49 +75,15 @@ text[start:end]  # should match the intended entity text exactly
 
 ## Plans
 
-Implementation plans live in `docs/plans/`. Naming convention: `NNNN_topic.md` where `NNNN` is the next zero-padded 4-digit number and `topic` is snake_case.
+New plans live in `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`.  
+**Always use the `superpowers:writing-plans` skill** to write a new plan and `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to execute it.
 
-**Always use the `superpowers:writing-plans` skill** to write a new plan — it produces the standard header, bite-sized TDD tasks with checkboxes (`- [ ]`), and a self-review pass.
-
-**To execute a plan**, use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans`.
-
-### Mandatory plan header
-
-```markdown
-# [Feature Name] Implementation Plan
-
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
-**Goal:** [one sentence]
-**Architecture:** [2-3 sentences]
-**Tech Stack:** Rust, Cargo, anyhow, serde, reqwest
-```
-
-### Task structure (bite-sized, TDD)
-
-Each task = one file/component. Steps are 2-5 min each:
-
-```markdown
-### Task N: [Name]
-
-**Files:**
-- Create/Modify: `src/file.rs`
-- Test: inline unit tests in same file
-
-- [ ] Write the failing test (actual test code here)
-- [ ] Run `cargo test <name>` — expected: FAIL
-- [ ] Write minimal implementation (actual code here)
-- [ ] Run `cargo test <name>` — expected: PASS
-- [ ] `git commit -m "feat: ..."`
-```
-
-No placeholders ("TBD", "add appropriate error handling", etc.) — every step shows real code and expected command output.
+> Legacy plans 0001–0007 in `docs/plans/NNNN_topic.md` are completed and left as-is.
 
 ### Index
 
-Always create a new file — never edit a completed plan.
+`docs/plans/INDEX.md` tracks history and future ideas:
+- **Completed** — storico dei piani terminati e mergiati.
+- **Backlog** — appunti su lavoro futuro (nessun file piano ancora). Quando un'idea diventa concreta, esegui `superpowers:writing-plans` e crea il file.
 
-`docs/plans/INDEX.md` is the authoritative backlog. Keep it up to date:
-- Move items from **Backlog** to a numbered plan file when work begins.
-- Mark a plan **Completed** when all checkboxes are done and merged.
-- Progress within a plan is tracked by its own checkboxes — INDEX.md does not track "In Progress".
+Active plans are tracked by their own checkboxes inside the plan file — INDEX.md does not duplicate that state.
