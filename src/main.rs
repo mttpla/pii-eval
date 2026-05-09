@@ -5,6 +5,7 @@ mod ollama_client;
 mod presidio_client;
 mod report;
 mod stats;
+mod unicode;
 
 use std::path::PathBuf;
 
