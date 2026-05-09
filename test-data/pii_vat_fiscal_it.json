@@ -12,7 +12,7 @@
         },
         {
           "entity_type": "LOCATION",
-          "start": 196,
+          "start": 181,
           "end": 203
         }
       ]
@@ -39,6 +39,11 @@
       "lang": "it",
       "text": "Il professionista, dott. Lorenzo Cattaneo, titolare di partita IVA IT07816230965, esercita attività di consulenza fiscale presso il proprio studio di Torino. Per appuntamenti scrivere a lorenzo.cattaneo@studiocattaneo.it.",
       "expected": [
+        {
+          "entity_type": "PERSON",
+          "start": 25,
+          "end": 41
+        },
         {
           "entity_type": "IT_VAT_CODE",
           "start": 67,
@@ -68,8 +73,8 @@
         },
         {
           "entity_type": "LOCATION",
-          "start": 117,
-          "end": 122
+          "start": 94,
+          "end": 123
         }
       ]
     },
@@ -85,7 +90,7 @@
         },
         {
           "entity_type": "LOCATION",
-          "start": 139,
+          "start": 122,
           "end": 145
         }
       ]
