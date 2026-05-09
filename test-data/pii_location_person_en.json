@@ -12,7 +12,7 @@
         },
         {
           "entity_type": "LOCATION",
-          "start": 74,
+          "start": 58,
           "end": 83
         }
       ]
@@ -68,8 +68,8 @@
       "expected": [
         {
           "entity_type": "LOCATION",
-          "start": 38,
-          "end": 45
+          "start": 24,
+          "end": 54
         }
       ]
     },
