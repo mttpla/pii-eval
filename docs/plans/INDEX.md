@@ -19,3 +19,4 @@
 |---|---|---|
 | medium | Report comparison tool | Add a CLI subcommand or script to diff two report JSONs side-by-side (delta per entity type and language). pii-eval is a benchmark — prompts, models, and backends are the variables; test data is the constant. Each report already embeds system_prompt_content, so two reports are self-contained and comparable. |
 | low | Ollama model-not-available error | When the requested model is not loaded, surface a clear error and suggest running `ollama pull <model-name>` instead of a generic api_error. |
+| low | Warn when --system-prompt ignored | When `--backend presidio` and `--system-prompt` is passed, the flag is silently ignored (file not read, no warning). One `eprintln!` warning in `build_analyzer` is enough. |
