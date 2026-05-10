@@ -52,7 +52,7 @@ struct Args {
     #[arg(long)]
     ollama_model: Option<String>,
 
-    /// Path to the LLM system prompt file — optional, falls back to ./llm-prompt.md
+    /// Path to the LLM system prompt file — optional, falls back to prompts/v1.md
     #[arg(long)]
     system_prompt: Option<PathBuf>,
 

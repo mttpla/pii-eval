@@ -45,7 +45,7 @@ pii-eval [OPTIONS]
 | `--verbose`, `-v` | `false` | Print per-sample TP/FP/FN counts while running |
 | `--backend <NAME>` | `presidio` | Backend to use: `presidio` or `ollama` |
 | `--ollama-model <MODEL>` | — | Ollama model name — **required** when `--backend ollama` |
-| `--system-prompt <PATH>` | `./llm-prompt.md` | Path to the LLM system prompt file (Ollama only) |
+| `--system-prompt <PATH>` | `prompts/v1.md` | Path to the LLM system prompt file (Ollama only) |
 | `--timeout-secs <N>` | `120` | HTTP timeout in seconds applied to all analyzer requests |
 
 All parameters (including defaults) are recorded in the JSON report under `params` for full reproducibility.
@@ -420,7 +420,7 @@ Then run `pii-eval` pointing to the Ollama endpoint:
 pii-eval --backend ollama \
          --analyzer-url http://localhost:11434/api/chat \
          --ollama-model qwen2.5:7b-instruct-q4_K_M \
-         --system-prompt ./llm-prompt.md \
+         --system-prompt prompts/v1.md \
          --input ./test-data --verbose
 ```
 
