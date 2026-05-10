@@ -161,7 +161,7 @@ If the text contains **no PII at all**, set `expected` to an empty array — any
 
 ### Step 3 — Get the offsets right
 
-Offsets are **byte positions** in the UTF-8 string: `start` is inclusive, `end` is exclusive. The easiest way to verify them is Python:
+Offsets are **Unicode character offsets**: `start` is inclusive, `end` is exclusive. The easiest way to verify them is Python:
 
 ```python
 text = "Il dott. Luca Ferri abita in via Roma 12, Torino."
@@ -179,7 +179,7 @@ end = start + len(target)
 print(f"start={start}, end={end}")
 ```
 
-> **Tip**: if the text contains non-ASCII characters (accented letters, emoji), remember that Python `str` uses Unicode code points while Presidio works on UTF-8 bytes. For pure Latin text they coincide; for anything else, use `text.encode('utf-8')` to find byte offsets.
+> **Tip**: Python `str` indexing uses Unicode code points — the same convention used by pii-eval, Presidio, and the Ollama prompt. `text[start:end]` always gives the expected substring, even for accented Italian text (`è`, `à`, `ù`) or emoji.
 
 ### Step 4 — Choose the right entity type
 
