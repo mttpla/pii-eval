@@ -495,6 +495,62 @@ pii-eval --backend ollama \
 
 ---
 
+## System prompt (Ollama backend)
+
+When using `--backend ollama`, pii-eval sends a **system prompt** to the model before each sample. This prompt defines the task, the output format, and the entity types the model should detect.
+
+### Prompt files
+
+Prompts live in the `prompts/` directory. The current default is `prompts/v1.md`.
+
+To run with a specific prompt:
+
+```bash
+pii-eval --backend ollama \
+         --analyzer-url http://localhost:11434/api/chat \
+         --ollama-model qwen2.5:7b-instruct-q4_K_M \
+         --system-prompt prompts/v1.md \
+         --input ./test-data
+```
+
+### Creating a new prompt variant
+
+Copy the current prompt and edit it:
+
+```bash
+cp prompts/v1.md prompts/v2.md
+# edit prompts/v2.md
+```
+
+Run with the new prompt and compare results:
+
+```bash
+pii-eval --system-prompt prompts/v1.md --backend ollama \
+         --analyzer-url http://localhost:11434/api/chat \
+         --ollama-model qwen2.5:7b-instruct-q4_K_M \
+         --input ./test-data --output report-v1.json
+
+pii-eval --system-prompt prompts/v2.md --backend ollama \
+         --analyzer-url http://localhost:11434/api/chat \
+         --ollama-model qwen2.5:7b-instruct-q4_K_M \
+         --input ./test-data --output report-v2.json
+```
+
+### Prompts are recorded in the report
+
+Every JSON report includes the **full prompt text** used in that run under `params.system_prompt_content`. Reports are self-contained: you can always reconstruct exactly which prompt produced which results, even after the prompt files have changed.
+
+```json
+"params": {
+  "system_prompt_path": "prompts/v2.md",
+  "system_prompt_content": "You are a PII detection engine..."
+}
+```
+
+> **Presidio backend**: `--system-prompt` is not used. The `system_prompt_path` and `system_prompt_content` fields are absent from the report.
+
+---
+
 ## Running Presidio locally
 
 The fastest way is Docker:
