@@ -354,12 +354,12 @@ The report differs between backends — `params` is the only section that change
     "samples": 42,
     "api_errors": 0,
     "entities_expected": 130,
-    "entities_predicted": 127,
+    "entities_predicted": 125,
     "elapsed": "00:00:08"
   },
   "global": {
-    "strict":  { "tp": 115, "fp": 10, "fn": 15, "precision": 0.921, "recall": 0.884, "f1": 0.902, "f2": 0.891 },
-    "relaxed": { "tp": 118, "fp":  7, "fn": 12, "precision": 0.945, "recall": 0.907, "f1": 0.926, "f2": 0.914 }
+    "strict":  { "tp": 115, "fp": 10, "fn": 15, "precision": 0.920, "recall": 0.885, "f1": 0.902, "f2": 0.891 },
+    "relaxed": { "tp": 118, "fp":  7, "fn": 12, "precision": 0.944, "recall": 0.908, "f1": 0.926, "f2": 0.914 }
   },
   "by_entity_type": {
     "PERSON": { "strict": { "tp": 50, "fp": 2, "fn": 3, "precision": 0.962, "recall": 0.943, "f1": 0.952, "f2": 0.947 },
@@ -413,7 +413,7 @@ The report differs between backends — `params` is the only section that change
     "backend": "ollama",
     "ollama_model": "qwen2.5:7b-instruct-q4_K_M",
     "system_prompt_path": "prompts/v1.md",
-    "system_prompt_content": "You are a PII detection engine like the Microsoft Presidio Analyzer...",
+    "system_prompt_content": "You are a PII detection engine like the Microsoft Presidio Analyzer. [... full prompt omitted in this example]",
     "timeout_secs": 120
   },
   "summary": {
@@ -431,6 +431,8 @@ The report differs between backends — `params` is the only section that change
   "api_errors": []
 }
 ```
+
+> **Note:** metric values are rounded to 3 decimal places. The actual JSON contains full floating-point precision (e.g. `0.9200000000000001`).
 
 ---
 
