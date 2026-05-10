@@ -332,38 +332,102 @@ Samples with errors  (4 samples)
 
 ### JSON report structure
 
+The report differs between backends — `params` is the only section that changes.
+
+**Presidio backend** (no prompt fields):
+
 ```json
 {
   "version": "a1b2c3d",
   "generated_at": "2026-05-07T10:00:00Z",
+  "params": {
+    "input": "./test-data",
+    "analyzer_url": "http://localhost:5002/analyze",
+    "output": "pii-eval-a1b2c3d-2026-05-07_10_00_00.json",
+    "recursive": false,
+    "verbose": false,
+    "backend": "presidio",
+    "timeout_secs": 120
+  },
   "summary": {
     "files": 3,
     "samples": 42,
     "api_errors": 0,
     "entities_expected": 130,
-    "entities_predicted": 127
+    "entities_predicted": 127,
+    "elapsed": "00:00:08"
   },
   "global": {
     "strict":  { "tp": 115, "fp": 10, "fn": 15, "precision": 0.921, "recall": 0.884, "f1": 0.902, "f2": 0.891 },
     "relaxed": { "tp": 118, "fp":  7, "fn": 12, "precision": 0.945, "recall": 0.907, "f1": 0.926, "f2": 0.914 }
   },
   "by_entity_type": {
-    "PERSON": { "strict": { ... }, "relaxed": { ... } }
+    "PERSON": { "strict": { "tp": 50, "fp": 2, "fn": 3, "precision": 0.962, "recall": 0.943, "f1": 0.952, "f2": 0.947 },
+                "relaxed": { "tp": 52, "fp": 0, "fn": 1, "precision": 1.0, "recall": 0.981, "f1": 0.990, "f2": 0.985 } }
   },
   "by_language": {
-    "it": { "strict": { ... }, "relaxed": { ... } }
+    "it": { "strict": { "tp": 80, "fp": 6, "fn": 10, "precision": 0.930, "recall": 0.889, "f1": 0.909, "f2": 0.897 },
+            "relaxed": { "tp": 83, "fp": 3, "fn": 7,  "precision": 0.965, "recall": 0.922, "f1": 0.943, "f2": 0.930 } }
   },
   "test_errors": [
     {
       "sample_id": "italian_names::003",
       "severity": "High",
       "kinds": ["FalseNegative"],
-      "expected": [
-        { "entity_type": "PERSON", "start": 22, "end": 27 }
+      "near_misses": [],
+      "false_positives": [],
+      "false_negatives": [
+        { "entity_type": "PERSON", "start": 22, "end": 27, "text": "Rossi" }
+      ]
+    },
+    {
+      "sample_id": "addresses::007",
+      "severity": "Medium",
+      "kinds": ["NearMiss"],
+      "near_misses": [
+        {
+          "obtained": { "entity_type": "LOCATION", "start": 5, "end": 11, "text": "Milano" },
+          "expected": { "entity_type": "LOCATION", "start": 5, "end": 12, "text": "Milano," }
+        }
       ],
-      "obtained": []
+      "false_positives": [],
+      "false_negatives": []
     }
   ],
+  "api_errors": []
+}
+```
+
+**Ollama backend** — identical structure, with additional prompt fields in `params` and longer `elapsed`:
+
+```json
+{
+  "version": "a1b2c3d",
+  "generated_at": "2026-05-07T10:00:00Z",
+  "params": {
+    "input": "./test-data",
+    "analyzer_url": "http://localhost:11434/api/chat",
+    "output": "pii-eval-a1b2c3d-2026-05-07_10_00_00.json",
+    "recursive": false,
+    "verbose": false,
+    "backend": "ollama",
+    "ollama_model": "qwen2.5:7b-instruct-q4_K_M",
+    "system_prompt_path": "prompts/v1.md",
+    "system_prompt_content": "You are a PII detection engine like the Microsoft Presidio Analyzer...",
+    "timeout_secs": 120
+  },
+  "summary": {
+    "files": 3,
+    "samples": 42,
+    "api_errors": 0,
+    "entities_expected": 130,
+    "entities_predicted": 127,
+    "elapsed": "00:12:45"
+  },
+  "global": { "strict": { "..." }, "relaxed": { "..." } },
+  "by_entity_type": { "..." },
+  "by_language": { "..." },
+  "test_errors": [ "..." ],
   "api_errors": []
 }
 ```
