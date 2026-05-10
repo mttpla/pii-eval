@@ -117,7 +117,10 @@ impl OllamaClient {
 
         let req = ChatRequest {
             model: &self.model,
-            messages: vec![Message { role: "user", content: "." }],
+            messages: vec![
+                Message { role: "system", content: &self.system_prompt },
+                Message { role: "user", content: "." },
+            ],
             stream: false,
         };
 
