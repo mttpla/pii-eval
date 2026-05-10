@@ -69,22 +69,23 @@ fn main() -> Result<()> {
     let generated_at = iso8601(secs);
 
     // build_analyzer borrows &args — must happen before any field is partially moved
-    let (analyzer, ollama_model, system_prompt_path) = build_analyzer(&args)?;
+    let (analyzer, ollama_model, system_prompt_path, system_prompt_content) = build_analyzer(&args)?;
 
     let output_path = args.output.unwrap_or_else(|| {
         PathBuf::from(format!("pii-eval-{}-{}.json", VERSION, filename_ts(secs)))
     });
 
     let params = RunParams {
-        input:              args.input.display().to_string(),
-        analyzer_url:       args.analyzer_url,
-        output:             output_path.display().to_string(),
-        recursive:          args.recursive,
-        verbose:            args.verbose,
-        backend:            args.backend,
+        input:                  args.input.display().to_string(),
+        analyzer_url:           args.analyzer_url,
+        output:                 output_path.display().to_string(),
+        recursive:              args.recursive,
+        verbose:                args.verbose,
+        backend:                args.backend,
         ollama_model,
         system_prompt_path,
-        timeout_secs:       args.timeout_secs,
+        system_prompt_content,
+        timeout_secs:           args.timeout_secs,
     };
 
     let mut stats = Stats::new();
@@ -209,10 +210,11 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn build_analyzer(args: &Args) -> Result<(Box<dyn Analyzer>, Option<String>, Option<String>)> {
+fn build_analyzer(args: &Args) -> Result<(Box<dyn Analyzer>, Option<String>, Option<String>, Option<String>)> {
     match args.backend.as_str() {
         "presidio" => Ok((
             Box::new(PresidioClient::new(&args.analyzer_url, args.timeout_secs)),
+            None,
             None,
             None,
         )),
@@ -220,13 +222,14 @@ fn build_analyzer(args: &Args) -> Result<(Box<dyn Analyzer>, Option<String>, Opt
             let model = args.ollama_model.clone()
                 .ok_or_else(|| anyhow::anyhow!("--ollama-model is required when --backend ollama"))?;
             let prompt_path = args.system_prompt.clone()
-                .unwrap_or_else(|| PathBuf::from("llm-prompt.md"));
+                .unwrap_or_else(|| PathBuf::from("prompts/v1.md"));
             let prompt = std::fs::read_to_string(&prompt_path)
                 .with_context(|| format!("system prompt not found: {}", prompt_path.display()))?;
             Ok((
                 Box::new(OllamaClient::new(&args.analyzer_url, &model, &prompt, args.timeout_secs)),
                 Some(model),
                 Some(prompt_path.display().to_string()),
+                Some(prompt),
             ))
         }
         other => anyhow::bail!("unknown backend {:?} — use 'presidio' or 'ollama'", other),

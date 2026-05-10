@@ -135,8 +135,12 @@ pub struct RunParams {
     pub recursive: bool,
     pub verbose: bool,
     pub backend: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ollama_model: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub system_prompt_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub system_prompt_content: Option<String>,
     pub timeout_secs: u64,
 }
 
@@ -151,4 +155,43 @@ pub struct EvalReport {
     pub by_language: BTreeMap<String, DualMetrics>,
     pub test_errors: Vec<TestError>,
     pub api_errors: Vec<ApiError>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn base_params(backend: &str) -> RunParams {
+        RunParams {
+            input: "./test-data".to_string(),
+            analyzer_url: "http://localhost".to_string(),
+            output: "out.json".to_string(),
+            recursive: false,
+            verbose: false,
+            backend: backend.to_string(),
+            ollama_model: None,
+            system_prompt_path: None,
+            system_prompt_content: None,
+            timeout_secs: 120,
+        }
+    }
+
+    #[test]
+    fn run_params_includes_prompt_content_in_json() {
+        let mut p = base_params("ollama");
+        p.system_prompt_path = Some("prompts/v1.md".to_string());
+        p.system_prompt_content = Some("You are a PII detector.".to_string());
+        let json = serde_json::to_string(&p).unwrap();
+        assert!(json.contains("\"system_prompt_content\""));
+        assert!(json.contains("You are a PII detector."));
+        assert!(json.contains("\"system_prompt_path\""));
+    }
+
+    #[test]
+    fn run_params_omits_prompt_fields_when_none() {
+        let p = base_params("presidio");
+        let json = serde_json::to_string(&p).unwrap();
+        assert!(!json.contains("system_prompt_content"));
+        assert!(!json.contains("system_prompt_path"));
+    }
 }
