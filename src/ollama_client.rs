@@ -104,6 +104,42 @@ impl OllamaClient {
 
         Ok(chat.message.content)
     }
+
+    pub fn warmup(&self, timeout_secs: u64) -> Result<()> {
+        // A separate client is required: cold-start load time routinely exceeds the
+        // normal per-request timeout stored in self.client.
+        let warmup_client = Client::builder()
+            .timeout(Duration::from_secs(timeout_secs))
+            .build()
+            .expect("failed to build warmup HTTP client");
+
+        eprintln!("warming up Ollama model '{}' (timeout: {}s)…", self.model, timeout_secs);
+
+        let req = ChatRequest {
+            model: &self.model,
+            messages: vec![Message { role: "user", content: "." }],
+            stream: false,
+        };
+
+        let resp = warmup_client
+            .post(&self.url)
+            .json(&req)
+            .send()
+            .with_context(|| format!("warm-up: cannot reach Ollama at {}", self.url))?;
+
+        let status = resp.status();
+        if !status.is_success() {
+            let body = resp.text().unwrap_or_default();
+            anyhow::bail!("warm-up: HTTP {} from Ollama: {}", status, body);
+        }
+
+        let _: ChatResponse = resp.json().context("warm-up: cannot parse Ollama response")?;
+        // done_reason is intentionally ignored: warmup only needs the model loaded,
+        // truncated output is harmless here.
+
+        eprintln!("warm-up complete — model loaded");
+        Ok(())
+    }
 }
 
 impl Analyzer for OllamaClient {
@@ -404,5 +440,75 @@ mod tests {
     #[test]
     fn invalid_json_returns_error() {
         assert!(parse_entities("not json at all").is_err());
+    }
+}
+
+#[cfg(test)]
+mod warmup_tests {
+    use super::*;
+    use mockito::Server;
+
+    fn valid_response_body() -> &'static str {
+        r#"{"message":{"content":""},"done_reason":"stop"}"#
+    }
+
+    #[test]
+    fn warmup_succeeds_on_valid_response() {
+        let mut server = Server::new();
+        let mock = server
+            .mock("POST", "/api/chat")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(valid_response_body())
+            .create();
+
+        let url = format!("{}/api/chat", server.url());
+        let client = OllamaClient::new(&url, "test-model", "", 5);
+        assert!(client.warmup(10).is_ok());
+        mock.assert();
+    }
+
+    #[test]
+    fn warmup_fails_on_http_error() {
+        let mut server = Server::new();
+        let _mock = server
+            .mock("POST", "/api/chat")
+            .with_status(500)
+            .with_body("Internal Server Error")
+            .create();
+
+        let url = format!("{}/api/chat", server.url());
+        let client = OllamaClient::new(&url, "test-model", "", 5);
+        let err = client.warmup(5).unwrap_err();
+        assert!(err.to_string().contains("warm-up: HTTP 500"));
+    }
+
+    #[test]
+    fn warmup_fails_on_invalid_json() {
+        let mut server = Server::new();
+        let _mock = server
+            .mock("POST", "/api/chat")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body("not json at all")
+            .create();
+
+        let url = format!("{}/api/chat", server.url());
+        let client = OllamaClient::new(&url, "test-model", "", 5);
+        let err = client.warmup(5).unwrap_err();
+        assert!(err.to_string().contains("warm-up: cannot parse Ollama response"));
+    }
+
+    #[test]
+    fn warmup_fails_on_unreachable_url() {
+        // Bind to :0 to get an OS-allocated port, then drop immediately — guaranteed refused
+        let port = {
+            let l = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+            l.local_addr().unwrap().port()
+        };
+        let url = format!("http://127.0.0.1:{}/api/chat", port);
+        let client = OllamaClient::new(&url, "test-model", "", 1);
+        let err = client.warmup(1).unwrap_err();
+        assert!(err.to_string().contains("warm-up:"));
     }
 }
