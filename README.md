@@ -227,7 +227,7 @@ Every expected entity is compared against every Presidio prediction using two cr
 | **Strict** | `entity_type` equal **and** `start` equal **and** `end` equal |
 | **Relaxed** | `entity_type` equal **and** spans overlap by at least 1 character (`pred.start < exp.end && pred.end > exp.start`) |
 
-A **near miss** is a relaxed match that is not a strict match — Presidio found the right entity type and roughly the right place, but the exact byte offsets differ.
+A **near miss** is a relaxed match that is not a strict match — Presidio found the right entity type and roughly the right place, but the exact character offsets differ.
 
 ### TP / FP / FN
 
