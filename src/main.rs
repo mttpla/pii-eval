@@ -236,8 +236,10 @@ fn build_analyzer(args: &Args) -> Result<(Box<dyn Analyzer>, Option<String>, Opt
                 .unwrap_or_else(|| PathBuf::from("prompts/v1.md"));
             let prompt = std::fs::read_to_string(&prompt_path)
                 .with_context(|| format!("system prompt not found: {}", prompt_path.display()))?;
+            let client = OllamaClient::new(&args.analyzer_url, &model, &prompt, args.timeout_secs);
+            client.warmup(args.warmup_timeout_secs)?;
             Ok((
-                Box::new(OllamaClient::new(&args.analyzer_url, &model, &prompt, args.timeout_secs)),
+                Box::new(client),
                 Some(model),
                 Some(prompt_path.display().to_string()),
                 Some(prompt),

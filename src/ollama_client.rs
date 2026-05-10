@@ -111,7 +111,7 @@ impl OllamaClient {
         let warmup_client = Client::builder()
             .timeout(Duration::from_secs(timeout_secs))
             .build()
-            .expect("failed to build warmup HTTP client");
+            .context("failed to build warmup HTTP client")?;
 
         eprintln!("warming up Ollama model '{}' (timeout: {}s)…", self.model, timeout_secs);
 
