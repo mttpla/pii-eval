@@ -47,6 +47,7 @@ pii-eval [OPTIONS]
 | `--ollama-model <MODEL>` | — | Ollama model name — **required** when `--backend ollama` |
 | `--system-prompt <PATH>` | `prompts/v1.md` | Path to the LLM system prompt file (Ollama only) |
 | `--timeout-secs <N>` | `120` | HTTP timeout in seconds applied to all analyzer requests |
+| `--warmup-timeout-secs <N>` | `300` | Timeout in seconds for the warm-up request sent before the eval loop (Ollama only) |
 
 All parameters (including defaults) are recorded in the JSON report under `params` for full reproducibility.
 
@@ -414,7 +415,8 @@ The report differs between backends — `params` is the only section that change
     "ollama_model": "qwen2.5:7b-instruct-q4_K_M",
     "system_prompt_path": "prompts/v1.md",
     "system_prompt_content": "You are a PII detection engine like the Microsoft Presidio Analyzer. [... full prompt omitted in this example]",
-    "timeout_secs": 120
+    "timeout_secs": 120,
+    "warmup_timeout_secs": 300
   },
   "summary": {
     "files": 3,
