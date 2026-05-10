@@ -17,6 +17,7 @@
 
 | Priority | Title | Description |
 |---|---|---|
+| high | Ollama warm-up before eval loop | First request always fails (`pii_contact_en::001` in all 4 reports) because model cold-start (load from disk) + inference exceeds `timeout_secs=120`. Fix: before the eval loop, send a minimal request with a longer configurable timeout (default 300s, new `--warmup-timeout` flag). Success → model in RAM, eval proceeds. Failure → bail early with clear error. |
 | medium | Report comparison tool | Add a CLI subcommand or script to diff two report JSONs side-by-side (delta per entity type and language). pii-eval is a benchmark — prompts, models, and backends are the variables; test data is the constant. Each report already embeds system_prompt_content, so two reports are self-contained and comparable. |
 | low | Ollama model-not-available error | When the requested model is not loaded, surface a clear error and suggest running `ollama pull <model-name>` instead of a generic api_error. |
 | low | Warn when --system-prompt ignored | When `--backend presidio` and `--system-prompt` is passed, the flag is silently ignored (file not read, no warning). One `eprintln!` warning in `build_analyzer` is enough. |

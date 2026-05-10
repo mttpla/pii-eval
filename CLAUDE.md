@@ -87,3 +87,12 @@ New plans live in `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`.
 - **Backlog** — appunti su lavoro futuro (nessun file piano ancora). Quando un'idea diventa concreta, esegui `superpowers:writing-plans` e crea il file.
 
 Active plans are tracked by their own checkboxes inside the plan file — INDEX.md does not duplicate that state.
+
+## Periodic practices
+
+At the end of a significant task or when the user runs `git push`, remind them (once, briefly) to consider:
+
+1. **Code review with Opus** — run `/ultrareview` or spawn an Opus agent to review the diff/branch for issues, smells, and improvements.
+2. **Test gap analysis** — look at the changed modules and ask: are there untested paths, edge cases, or behaviours worth covering? Suggest specific additions, not generic "add more tests".
+
+Do NOT remind on trivial changes (doc-only edits, comment fixes, backlog updates). Only when real code changed.
