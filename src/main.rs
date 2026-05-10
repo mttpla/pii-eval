@@ -59,6 +59,10 @@ struct Args {
     /// HTTP timeout in seconds applied to all analyzer requests
     #[arg(long, default_value_t = 120)]
     timeout_secs: u64,
+
+    /// Warm-up timeout in seconds for the initial Ollama request (ignored when --backend presidio)
+    #[arg(long, default_value_t = 300)]
+    warmup_timeout_secs: u64,
 }
 
 fn main() -> Result<()> {
@@ -75,6 +79,12 @@ fn main() -> Result<()> {
         PathBuf::from(format!("pii-eval-{}-{}.json", VERSION, filename_ts(secs)))
     });
 
+    let warmup_timeout_secs = if args.backend == "ollama" {
+        Some(args.warmup_timeout_secs)
+    } else {
+        None
+    };
+
     let params = RunParams {
         input:                  args.input.display().to_string(),
         analyzer_url:           args.analyzer_url,
@@ -86,6 +96,7 @@ fn main() -> Result<()> {
         system_prompt_path,
         system_prompt_content,
         timeout_secs:           args.timeout_secs,
+        warmup_timeout_secs,
     };
 
     let mut stats = Stats::new();
@@ -286,4 +297,22 @@ fn days_to_ymd(mut days: u64) -> (u64, u64, u64) {
 
 fn is_leap(y: u64) -> bool {
     (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use clap::Parser;
+
+    #[test]
+    fn warmup_timeout_defaults_to_300() {
+        let args = Args::parse_from(["pii-eval"]);
+        assert_eq!(args.warmup_timeout_secs, 300);
+    }
+
+    #[test]
+    fn warmup_timeout_can_be_overridden() {
+        let args = Args::parse_from(["pii-eval", "--warmup-timeout-secs", "60"]);
+        assert_eq!(args.warmup_timeout_secs, 60);
+    }
 }

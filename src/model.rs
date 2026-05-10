@@ -142,6 +142,8 @@ pub struct RunParams {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub system_prompt_content: Option<String>,
     pub timeout_secs: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub warmup_timeout_secs: Option<u64>,
 }
 
 #[derive(Debug, Serialize)]
@@ -173,6 +175,7 @@ mod tests {
             system_prompt_path: None,
             system_prompt_content: None,
             timeout_secs: 120,
+            warmup_timeout_secs: None,
         }
     }
 
@@ -193,5 +196,20 @@ mod tests {
         let json = serde_json::to_string(&p).unwrap();
         assert!(!json.contains("system_prompt_content"));
         assert!(!json.contains("system_prompt_path"));
+    }
+
+    #[test]
+    fn run_params_includes_warmup_timeout_for_ollama() {
+        let mut p = base_params("ollama");
+        p.warmup_timeout_secs = Some(300);
+        let json = serde_json::to_string(&p).unwrap();
+        assert!(json.contains("\"warmup_timeout_secs\":300"));
+    }
+
+    #[test]
+    fn run_params_omits_warmup_timeout_for_presidio() {
+        let p = base_params("presidio");
+        let json = serde_json::to_string(&p).unwrap();
+        assert!(!json.contains("warmup_timeout_secs"));
     }
 }
